@@ -1,0 +1,226 @@
+<?php
+
+/**
+ * Plugin Name: CubX Configurater
+ * Plugin URI: cybernest.com
+ * Description: Configurator using ThreeJS.
+ * Version: 1.0.0
+ * Author: Ali Raza
+ * Author URI: github.com/aliraxa-hub
+ * Text Domain: https://github.com/CyberNestLtd/cubx-configurator
+ */
+
+function my_threejs_plugin_enqueue_scripts()
+{
+  wp_enqueue_style('bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css');
+  wp_enqueue_style('my-threejs-plugin-style', plugin_dir_url(__FILE__) . 'css/style.css');
+  wp_enqueue_script('jquery', 'https://code.jquery.com/jquery-3.2.1.slim.min.js', array(), '3.2.1', true);
+  wp_enqueue_script('popper', 'https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js', array('jquery'), '1.12.9', true);
+  wp_enqueue_script('bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js', array('jquery'), '4.0.0', true);
+  wp_enqueue_script('file-saver', plugin_dir_url(__FILE__) . 'js/FileSaver.js', array(), '1.0.0', true);
+}
+add_action('wp_enqueue_scripts', 'my_threejs_plugin_enqueue_scripts');
+
+function get_web_data()
+{
+  $web_data = array(
+    'web_url' => get_site_url(),
+    'web_path' => get_site_url(),
+  );
+
+  return $web_data;
+}
+
+function get_product_data()
+{
+  $args = array(
+    'post_type' => 'product',
+    'posts_per_page' => -1,
+  );
+
+  $products = get_posts($args);
+
+  $product_data = array();
+
+  foreach ($products as $product) {
+    $product_obj = wc_get_product($product->ID);
+
+    $attributes = $product_obj->get_attributes();
+    $attribute_data = array();
+
+    foreach ($attributes as $attribute) {
+      $attribute_name = $attribute->get_name();
+      $attribute_values = $product_obj->get_attribute($attribute_name);
+
+      if ($attribute->is_taxonomy()) {
+        $attribute_taxonomy = $attribute->get_taxonomy_object();
+        if ($attribute_taxonomy->attribute_type === 'color') {
+          $terms = get_terms(array(
+            'taxonomy' => $attribute_taxonomy->name,
+            'hide_empty' => false,
+          ));
+
+          $attribute_values = explode(',', $attribute_values);
+          $attribute_values = array_map('trim', $attribute_values);
+
+          $term_names = array();
+
+          foreach ($attribute_values as $attribute_value) {
+            foreach ($terms as $term) {
+              if ($term->name === $attribute_value) {
+                $meta_values = get_term_meta($term->term_id);
+                $product_attribute_colors = isset($meta_values['product_attribute_color']) ? $meta_values['product_attribute_color'] : array();
+                $color = !empty($product_attribute_colors) ? $product_attribute_colors[0] : '';
+
+                if (!isset($term_names[$term->slug])) {
+                  $term_names[] = array(
+                    'name' => $term->name,
+                    'id' => $term->term_id,
+                    'color' => $color,
+                    'slug' => $term->slug,
+                  );
+                }
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      $attribute_data[$attribute_name] = $term_names;
+    }
+
+    $variant_data = array();
+
+    if ($product_obj->is_type('variable')) {
+      $variations = $product_obj->get_available_variations();
+
+      foreach ($variations as $variation) {
+        $variation_object = wc_get_product($variation['variation_id']);
+        $attributes = $variation_object->get_variation_attributes();
+        $variation_name = implode(' - ', $attributes);
+        $variant_data[] = array(
+          'id' => $variation['variation_id'],
+          'slug' => $variation_name,
+          'price' => $variation['display_price'],
+          'image' => $variation['image']['url'],
+          'description' => $variation_object->get_description(),
+        );
+      }
+    }
+
+    $product_data[$product->ID] = array(
+      'id' => $product->ID,
+      'name' => $product->post_title,
+      'slug' => $product->post_name,
+      'x' => $product,
+      'image' => get_the_post_thumbnail_url($product->ID),
+      'category' => get_the_terms($product->ID, 'product_cat')[0]->name,
+      'variants' => $variant_data,
+      'attributes' => $attribute_data,
+      'tag' => get_the_terms($product->ID, 'product_tag')[0]->name,
+    );
+  }
+
+  return $product_data;
+}
+
+
+function my_threejs_plugin_output()
+{
+  $products = get_product_data();
+  $cubx_data = get_web_data();
+  ob_start();
+?>
+  <!DOCTYPE html>
+  <html lang="en">
+
+  <head>
+    <title>Configurater</title>
+    <meta charset="utf-8" />
+    <link rel="shortcut icon" />
+    <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__); ?>css/style.css" />
+  </head>
+
+  <body>
+    <div class="left-toolbar-box position-fixed">
+      <ul>
+        <li>
+          <div class="item" id="moveCube">
+            <img src="<?php echo plugin_dir_url(__FILE__); ?>img/move.png" alt="" />
+            <div>move</div>
+          </div>
+        </li>
+        <li>
+          <div class="item" id="deleteCube">
+            <img src="<?php echo plugin_dir_url(__FILE__); ?>img/close.png" alt="" />
+            <div>delete</div>
+          </div>
+        </li>
+        <li>
+          <div class="item" id="deleteAllCube">
+            <img src="<?php echo plugin_dir_url(__FILE__); ?>img/close.png" alt="" />
+            <div>delete <br> all</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+    <div class="right-box position-absolute" id="divA">
+      <div class="d-flex justify-content-around cube-tabs">
+        <button id="uCube" class="btn btn-link btn-switch-cube fs-10 text-decoration-none rounded-0">U-Cube</button>
+        <button id="oCube" class="btn btn-link btn-switch-cube fs-10 text-decoration-none rounded-0 active">O-Cube</button>
+      </div>
+      <div id="cubex" class="fs-6 position-absolute CubeSet" style="font-size: small"></div>
+    </div>
+    <div class="position-absolute d-flex align-items-center bottom-toolbar">
+      <div class="zoom-btn">
+        <div class="d-flex justify-content-around">
+          <button class="mx-2" id="zoomOut"><img src="<?php echo plugin_dir_url(__FILE__); ?>img/zoom-out.png" /></button>
+          <input type="range" name="volume" min="25" max="40" value="25">
+          <button class="mx-2" id="zoomIn"><img src="<?php echo plugin_dir_url(__FILE__); ?>img/zoom-in.png" /></button>
+        </div>
+      </div>
+      <div class="rotate-btn mx-4">
+        <button id="rotateCube">
+          <img src="<?php echo plugin_dir_url(__FILE__); ?>img/360.png" />
+          <span class="d-block">rotate</span>
+        </button>
+      </div>
+    </div>
+    <div id="output" style="position: absolute; display: none;"></div>
+    <script src="<?php echo plugin_dir_url(__FILE__); ?>libs/draco/draco_wasm_wrapper.js"></script>
+    <script type="application/wasm" src="<?php echo plugin_dir_url(__FILE__); ?>libs/draco/draco_decoder.wasm"></script>
+    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/three.module_res_res.js"></script>
+    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/OrbitControls_res_res.js"></script>
+    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/GltfLoader_res_res.js"></script>
+    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/DracoLoader_res_res.js"></script>
+    <script>
+      var WP_CART_DATA = {};
+      var WP_PRODUCTS = <?= json_encode($products) ?>;
+      var WP_CUBX_DATA = <?= json_encode($cubx_data) ?>;
+    </script>
+    <script type="module" src="<?php echo plugin_dir_url(__FILE__); ?>js/configurater.js"></script>
+    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/FileSaver.js"></script>
+    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/constants.js"></script>
+    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/common.js"></script>
+    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/postprocessing/Pass.js"></script>
+    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/postprocessing/CopyShader.js"></script>
+    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/postprocessing/EffectComposer.js"></script>
+    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/postprocessing/OutlinePass.js"></script>
+    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/postprocessing/ShaderPass.js"></script>
+    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/postprocessing/RenderPass.js"></script>
+    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/postprocessing/MaskPass.js"></script>
+    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/DragControls.js"></script>
+    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/postprocessing/FXAAShader.js"></script>
+  </body>
+
+  </html>
+<?php
+  return ob_get_clean();
+}
+
+function my_threejs_plugin_shortcode()
+{
+  return my_threejs_plugin_output();
+}
+add_shortcode('configurater_threejs', 'my_threejs_plugin_shortcode');
