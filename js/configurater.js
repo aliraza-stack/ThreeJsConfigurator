@@ -146,8 +146,8 @@ const renderPass = new RenderPass(scene, camera);
 composer.addPass(renderPass);
 
 const outlinePass = new OutlinePass(new THREE.Vector2(width, height), scene, camera);
-outlinePass.edgeStrength = 3;
-outlinePass.edgeGlow = 1;
+outlinePass.edgeStrength = 6;
+outlinePass.edgeGlow = 0;
 outlinePass.edgeThickness = 3;
 outlinePass.pulsePeriod = 0;
 outlinePass.usePatternTexture = false;
@@ -187,8 +187,8 @@ function handleRotateCubes() {
   jQuery("#rotateCube").addClass("active");
   jQuery("#moveCube").removeClass("active");
   renderer.domElement.removeEventListener("pointerdown", onModelDown, false);
-  // renderer.domElement.removeEventListener("pointermove", onModelMove, false);
-  // renderer.domElement.removeEventListener("pointerup", onModelUp, false);
+  renderer.domElement.removeEventListener("pointermove", onModelMove, false);
+  renderer.domElement.removeEventListener("pointerup", onModelUp, false);
   renderer.domElement.addEventListener("pointerdown", onMouseDownRotation, false);
 }
 
@@ -196,11 +196,12 @@ function handleRotateCubes() {
 jQuery("#moveCube").on("click", handleMoveCube);
 function handleMoveCube() {
   controls.enable = false;
+  controls.reset();
   jQuery("#moveCube").addClass("active");
   jQuery("#rotateCube").removeClass("active");
   renderer.domElement.addEventListener("pointerdown", onModelDown, false);
-  // renderer.domElement.addEventListener("pointermove", onModelMove, false);
-  // renderer.domElement.addEventListener("pointerup", onModelUp, false);
+  renderer.domElement.addEventListener("pointermove", onModelMove, false);
+  renderer.domElement.addEventListener("pointerup", onModelUp, false);
 }
 
 // DELETE ALL CUBES
@@ -418,59 +419,59 @@ function onModelDown(event) {
   renderer.domElement.style.cursor = "grabbing";
 }
 
-// function onModelUp(event) {
-//   event.preventDefault();
-//   previousMousePosition = { x: 0, y: 0 };
-//   isMoving = false;
-//   renderer.domElement.style.cursor = "auto";
-// }
+function onModelUp(event) {
+  event.preventDefault();
+  previousMousePosition = { x: 0, y: 0 };
+  isMoving = false;
+  renderer.domElement.style.cursor = "auto";
+}
 
-// function onModelMove(event) {
-//   event.preventDefault();
-//   const x = (event.clientX / width) * 1 - 1;
-//   const y = (event.clientY / height) * 1 - 1;
+function onModelMove(event) {
+  event.preventDefault();
+  if (isMoving && Selected) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    const mousePosition = {
+      x: ((event.clientX - rect.left) / rect.width) * 2 - 1,
+      y: -((event.clientY - rect.top) / rect.height) * 2 + 1,
+    };
+    const deltaMove = {
+      x: mousePosition.x - previousMousePosition.x,
+      y: mousePosition.y - previousMousePosition.y,
+    };
+    if (leftShiftPressed) {
+      mouseMove.y = event.clientY / height * 2.6 + 1;
+      Selected.position.y += deltaMove.y * mouseMove.y;
+      Selected.position.y = Math.min(1.5, Math.max(0, Selected.position.y));
+    } else {
+      mouseMove.y = event.clientY / height * 3 + 1;
+      Selected.position.x += deltaMove.x * mouseMove.y;
+      Selected.position.z -= deltaMove.y * mouseMove.y;
+      Selected.position.x = Math.min(1.5, Math.max(-1.5, Selected.position.x));
+      Selected.position.z = Math.min(1.5, Math.max(-1.5, Selected.position.z));
+    }
+    console.log(Selected.position.x);
+    console.log(Selected.position.z);
+    console.log(Selected.position.y);
+    previousMousePosition = mousePosition;
 
-//   console.log(x, y);
-//   if (isMoving && Selected) {
-//     // const rect = renderer.domElement.getBoundingClientRect();
-//     // const mousePosition = {
-//     //   x: ((event.clientX - rect.left) / rect.width) * 2 - 1,
-//     //   y: -((event.clientY - rect.top) / rect.height) * 2 + 1,
-//     // };
-//     // const deltaMove = {
-//     //   x: mousePosition.x - previousMousePosition.x,
-//     //   y: mousePosition.y - previousMousePosition.y,
-//     // };
-//     // if (leftShiftPressed) {
-//     //   Selected.position.y = (Selected.position.y + deltaMove.y) * 1.1;
-//     // } else {
-//     //   // Selected.position.x = Selected.position.x + (deltaMove.x * 1.1);
-//     //   // Selected.position.z = Selected.position.z - (deltaMove.y * 1.1);
-//     //   Selected.position.x = mousePosition.x;
-//     //   Selected.position.z = mousePosition.y;
-//     // }
-//     // previousMousePosition = mousePosition;
-//     Selected.position.x = x * 3;
-//     Selected.position.z = y * 3;
+  } else {
+    renderer.domElement.style.cursor = "auto";
+  }
+}
 
-//   } else {
-//     renderer.domElement.style.cursor = "auto";
-//   }
-// }
+// const dragControls = new DragControls(allCubes, camera, renderer.domElement);
 
-const dragControls = new DragControls(allCubes, camera, renderer.domElement);
-
-dragControls.addEventListener('dragstart', function () {
-  controls.enabled = false;
-  console.log('dragstart');
-});
-dragControls.addEventListener('drag', function () {
-  console.log('drag');
-});
-dragControls.addEventListener('dragend', function () {
-  controls.enabled = true;
-  console.log('dragend');
-});
+// dragControls.addEventListener('dragstart', function () {
+//   controls.enabled = false;
+//   console.log('dragstart');
+// });
+// dragControls.addEventListener('drag', function () {
+//   console.log('drag');
+// });
+// dragControls.addEventListener('dragend', function () {
+//   controls.enabled = true;
+//   console.log('dragend');
+// });
 
 // SHIFT KEY DOWN AND UP EVENT FOR MOVING CUBE UP AND DOWN
 window.addEventListener('keydown', (event) => {
