@@ -27,7 +27,7 @@ var scale = { x: 50, y: 2, z: 50 };
 
 camera = new THREE.PerspectiveCamera(30, width / height, 1, 1000);
 camera.position.set(0, 20, 70);
-camera.lookAt(new THREE.Vector3(0, 0, 0));
+
 
 renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 renderer.setPixelRatio(window.devicePixelRatio);
@@ -46,35 +46,87 @@ window.addEventListener("resize", function () {
 // SCENE
 scene = new THREE.Scene();
 scene.add(axesHelper);
-scene.background = new THREE.Color(0xdfdfdf);
+// scene.background = new THREE.Color(0xdfdfdf);
+
+// PIVOT
+const pivot = new THREE.Group();
+pivot.add(camera);
+scene.add(pivot);
+
+camera.lookAt(pivot.position);
 
 // CAMERA CONTROLS
 controls = new OrbitControls(camera, renderer.domElement);
 controls.enablePan = false;
-controls.maxPolarAngle = 0.9 * Math.PI / 2;
+// controls.maxPolarAngle = 0.9 * Math.PI / 2;
 // controls.minPolarAngle = 0.7 * Math.PI / 2;
-controls.minAzimuthAngle = -Math.PI / 2;
-controls.maxAzimuthAngle = Math.PI / 2;
+controls.minAzimuthAngle = -Math.PI;
+controls.maxAzimuthAngle = Math.PI;
 // controls.enableZoom = false;
 // controls.enableRotate = flase;
 
 // AMBIENT LIGHT
-const ambientLight = new THREE.AmbientLight(0xffffff, 1);
-scene.add(ambientLight);
+// const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+// scene.add(ambientLight);
 
-// DIRECTIONAL LIGHT
-var directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-directionalLight.position.set(0, 50, -20);
-directionalLight.target.position.set(0, 0, 0);
-scene.add(directionalLight);
-scene.add(directionalLight.target);
-directionalLight.castShadow = true;
-directionalLight.shadow.mapSize.width = 2080;
-directionalLight.shadow.mapSize.height = 2080;
-directionalLight.shadow.camera.left = -70;
-directionalLight.shadow.camera.right = 70;
-directionalLight.shadow.camera.top = 70;
-directionalLight.shadow.camera.bottom = -70;
+// HEMISPHERE LIGHT
+window.hemisphereLight = new THREE.HemisphereLight();
+window.hemisphereLight.intensity = 0.5;
+window.hemisphereLight.color = new Color(3, 6, 6);
+window.hemisphereLight.groundColor = new Color(3, 6, 6);
+window.hemisphereLight.position.set(0, 20, 0);
+scene.add(window.hemisphereLight);
+
+const helper = new THREE.HemisphereLightHelper(hemisphereLight, 10);
+scene.add(helper);
+
+
+// DIRECTIONAL LIGHT 1
+// var directionalLight1 = new THREE.DirectionalLight(0xffffff, 2);
+// var helper1 = new THREE.DirectionalLightHelper(directionalLight1, 5);
+// scene.add(helper1);
+// directionalLight1.position.set(30, 30, 30);
+// directionalLight1.target.position.set(0, 0, 0);
+// console.log(directionalLight1.position);
+// scene.add(directionalLight1);
+// scene.add(directionalLight1.target);
+// // directionalLight.castShadow = true;
+// // directionalLight.shadow.mapSize.width = 2080;
+// // directionalLight.shadow.mapSize.height = 2080;
+// // directionalLight.shadow.camera.left = -70;
+// // directionalLight.shadow.camera.right = 70;
+// // directionalLight.shadow.camera.top = 70;
+// // directionalLight.shadow.camera.bottom = -70;
+
+// // DIRECTIONAL LIGHT 2
+// var directionalLight2 = new THREE.DirectionalLight(0xffffff, 2);
+// var helper2 = new THREE.DirectionalLightHelper(directionalLight2, 5);
+// scene.add(helper2);
+// directionalLight2.position.set(-30, 30, 30);
+// directionalLight2.target.position.set(0, 0, 0);
+// console.log(directionalLight2.position);
+// scene.add(directionalLight2);
+// scene.add(directionalLight2.target);
+
+// // DIRECTIONAL LIGHT 3
+// var directionalLight3 = new THREE.DirectionalLight(0xffffff, 2);
+// var helper3 = new THREE.DirectionalLightHelper(directionalLight3, 5);
+// scene.add(helper3);
+// directionalLight3.position.set(30, 30, -30);
+// directionalLight3.target.position.set(0, 0, 0);
+// console.log(directionalLight3.position);
+// scene.add(directionalLight3);
+// scene.add(directionalLight3.target);
+
+// // DIRECTIONAL LIGHT 4
+// var directionalLight4 = new THREE.DirectionalLight(0xffffff, 2);
+// var helper4 = new THREE.DirectionalLightHelper(directionalLight4, 5);
+// scene.add(helper4);
+// directionalLight4.position.set(-30, 30, -30);
+// directionalLight4.target.position.set(0, 0, 0);
+// console.log(directionalLight4.position);
+// scene.add(directionalLight4);
+// scene.add(directionalLight4.target);
 
 // FLOOR PLANE
 function createFloor() {
@@ -99,10 +151,8 @@ outlinePass.edgeGlow = 1;
 outlinePass.edgeThickness = 3;
 outlinePass.pulsePeriod = 0;
 outlinePass.usePatternTexture = false;
-outlinePass.visibleEdgeColor = new THREE.Color(1, 0, 0);
-outlinePass.hiddenEdgeColor = new THREE.Color(0, 0, 0);
-// outlinePass.visibleEdgeColor.set("#8B0000");
-// outlinePass.hiddenEdgeColor.set("#000000");
+outlinePass.visibleEdgeColor.set("#279EFF");
+outlinePass.hiddenEdgeColor.set("#0C356A");
 composer.addPass(outlinePass);
 
 // FXAA SHADER PASS
@@ -123,12 +173,11 @@ function cloneCube(cubex) {
   const cubeModel = model_url;
   loader.load(cubeModel, (gltf) => {
     cube = gltf.scene;
-    cube.scale.set(20, 20, 20);
-    cube.rotation.set(0, -90, 0);
+    cube.scale.set(15, 15, 15);
     cube.userData.draggable = true;
     cube.userData.type = cubex.title;
-    scene.add(cube);
     allCubes.push(cube);
+    scene.add(cube);
   });
 }
 
@@ -138,8 +187,8 @@ function handleRotateCubes() {
   jQuery("#rotateCube").addClass("active");
   jQuery("#moveCube").removeClass("active");
   renderer.domElement.removeEventListener("pointerdown", onModelDown, false);
-  renderer.domElement.removeEventListener("pointermove", onModelMove, false);
-  renderer.domElement.removeEventListener("pointerup", onModelUp, false);
+  // renderer.domElement.removeEventListener("pointermove", onModelMove, false);
+  // renderer.domElement.removeEventListener("pointerup", onModelUp, false);
   renderer.domElement.addEventListener("pointerdown", onMouseDownRotation, false);
 }
 
@@ -150,8 +199,8 @@ function handleMoveCube() {
   jQuery("#moveCube").addClass("active");
   jQuery("#rotateCube").removeClass("active");
   renderer.domElement.addEventListener("pointerdown", onModelDown, false);
-  renderer.domElement.addEventListener("pointermove", onModelMove, false);
-  renderer.domElement.addEventListener("pointerup", onModelUp, false);
+  // renderer.domElement.addEventListener("pointermove", onModelMove, false);
+  // renderer.domElement.addEventListener("pointerup", onModelUp, false);
 }
 
 // DELETE ALL CUBES
@@ -275,7 +324,6 @@ function switchCubeModel(cubex) {
   });
 
   const allSubCubes = [...oCubeModel, ...uCubeModel];
-  console.log(allSubCubes);
 
   jQuery(document).on('click', ".sub-cube-images", function (e) {
     let productId = jQuery(e.target).data("product-id");
@@ -285,8 +333,6 @@ function switchCubeModel(cubex) {
       }
     })
   });
-
-
   deleteAllCubes();
 }
 
@@ -360,7 +406,6 @@ function onModelDown(event) {
   previousMousePosition = { x: (event.clientX / width) * 2 - 1, y: -(event.clientY / height) * 2 + 1, };
   raycaster.setFromCamera(previousMousePosition, camera);
   intersects = raycaster.intersectObjects(allCubes, true);
-
   if (intersects.length > 0) {
     let selectedObjects = [];
     selectedObjects.push(intersects[0].object.parent);
@@ -373,37 +418,59 @@ function onModelDown(event) {
   renderer.domElement.style.cursor = "grabbing";
 }
 
-function onModelUp(event) {
-  event.preventDefault();
-  previousMousePosition = { x: 0, y: 0 };
-  isMoving = false;
-  renderer.domElement.style.cursor = "auto";
-}
+// function onModelUp(event) {
+//   event.preventDefault();
+//   previousMousePosition = { x: 0, y: 0 };
+//   isMoving = false;
+//   renderer.domElement.style.cursor = "auto";
+// }
 
-function onModelMove(event) {
-  event.preventDefault();
-  if (isMoving && Selected) {
-    const rect = renderer.domElement.getBoundingClientRect();
-    const mousePosition = {
-      x: ((event.clientX - rect.left) / rect.width) * 2 - 1,
-      y: -((event.clientY - rect.top) / rect.height) * 2 + 1,
-    };
-    const deltaMove = {
-      x: mousePosition.x - previousMousePosition.x,
-      y: mousePosition.y - previousMousePosition.y,
-    };
-    if (leftShiftPressed) {
-      Selected.position.y = Math.min(13.2, Math.max(0, Selected.position.y + deltaMove.y * 25));
-    } else {
-      Selected.position.x = Math.min(22.5, Math.max(-22.5, Selected.position.x + deltaMove.x * 25));
-      Selected.position.z = Math.min(22.5, Math.max(-22.5, Selected.position.z - deltaMove.y * 25));
-    }
-    previousMousePosition = mousePosition;
-  } else {
-    renderer.domElement.style.cursor = "auto";
-  }
-}
+// function onModelMove(event) {
+//   event.preventDefault();
+//   const x = (event.clientX / width) * 1 - 1;
+//   const y = (event.clientY / height) * 1 - 1;
 
+//   console.log(x, y);
+//   if (isMoving && Selected) {
+//     // const rect = renderer.domElement.getBoundingClientRect();
+//     // const mousePosition = {
+//     //   x: ((event.clientX - rect.left) / rect.width) * 2 - 1,
+//     //   y: -((event.clientY - rect.top) / rect.height) * 2 + 1,
+//     // };
+//     // const deltaMove = {
+//     //   x: mousePosition.x - previousMousePosition.x,
+//     //   y: mousePosition.y - previousMousePosition.y,
+//     // };
+//     // if (leftShiftPressed) {
+//     //   Selected.position.y = (Selected.position.y + deltaMove.y) * 1.1;
+//     // } else {
+//     //   // Selected.position.x = Selected.position.x + (deltaMove.x * 1.1);
+//     //   // Selected.position.z = Selected.position.z - (deltaMove.y * 1.1);
+//     //   Selected.position.x = mousePosition.x;
+//     //   Selected.position.z = mousePosition.y;
+//     // }
+//     // previousMousePosition = mousePosition;
+//     Selected.position.x = x * 3;
+//     Selected.position.z = y * 3;
+
+//   } else {
+//     renderer.domElement.style.cursor = "auto";
+//   }
+// }
+
+const dragControls = new DragControls(allCubes, camera, renderer.domElement);
+
+dragControls.addEventListener('dragstart', function () {
+  controls.enabled = false;
+  console.log('dragstart');
+});
+dragControls.addEventListener('drag', function () {
+  console.log('drag');
+});
+dragControls.addEventListener('dragend', function () {
+  controls.enabled = true;
+  console.log('dragend');
+});
 
 // SHIFT KEY DOWN AND UP EVENT FOR MOVING CUBE UP AND DOWN
 window.addEventListener('keydown', (event) => {
