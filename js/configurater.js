@@ -58,7 +58,7 @@ window.addEventListener("resize", function () {
 
 // SCENE
 scene = new THREE.Scene();
-scene.add(axesHelper);
+// scene.add(axesHelper);
 // scene.background = new THREE.Color(0xdfdfdf);
 
 // PIVOT
@@ -75,7 +75,7 @@ controls.enablePan = false;
 // controls.minPolarAngle = 0.7 * Math.PI / 2;
 controls.minAzimuthAngle = -Math.PI;
 controls.maxAzimuthAngle = Math.PI;
-// controls.enableZoom = false;
+controls.enableZoom = false;
 // controls.enableRotate = flase;
 
 // AMBIENT LIGHT
@@ -90,8 +90,8 @@ window.hemisphereLight.groundColor = new Color(3, 6, 6);
 window.hemisphereLight.position.set(0, 20, 0);
 scene.add(window.hemisphereLight);
 
-const helper = new THREE.HemisphereLightHelper(hemisphereLight, 10);
-scene.add(helper);
+// const helper = new THREE.HemisphereLightHelper(hemisphereLight, 10);
+// scene.add(helper);
 
 
 // DIRECTIONAL LIGHT 1
@@ -191,7 +191,6 @@ function cloneCube(cubex) {
     cube.userData.position = cubePosition;
     allCubes.push(cube);
     scene.add(cube);
-    console.log('allCubes', allCubes);
   });
 }
 
@@ -534,7 +533,7 @@ function onModelUp(event) {
   controls.enabled = true;
   if (Selected) {
     Selected.position.x = (Math.round(Selected.position.x)) / 2.5;
-    Selected.position.y = (Math.round(Selected.position.y)) / 2.5;
+    Selected.position.y = (Math.round(Selected.position.y)) / 2.7;
     Selected.position.z = (Math.round(Selected.position.z)) / 2.5;
   }
   if (Dragged) {
