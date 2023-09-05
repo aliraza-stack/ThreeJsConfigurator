@@ -229,8 +229,6 @@ function deleteAllCubes() {
 // DELETE SELECTED CUBE
 jQuery("#deleteCube").on("click", deleteSelectedCube);
 function deleteSelectedCube() {
-  console.log('Selected', selectedCube);
-  console.log('allCubes', allCubes);
   for (let i = 0; i < allCubes.length; i++) {
     if (allCubes[i].children[0] === selectedCube.parent) {
       scene.remove(allCubes[i]);
