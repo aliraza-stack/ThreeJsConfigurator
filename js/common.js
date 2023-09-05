@@ -139,5 +139,5 @@ function updateVariantImage(productId) {
   const imageElement = cubexVariants.querySelector(".cubeImage");
   imageElement.src = matchedVariant ? matchedVariant.image : product.image;
 
-  imageElement.alt = matchedVariant ? matchedVariant.description : product.description;
+  imageElement.alt = matchedVariant ? matchedVariant.gltf_url : product.gltf_url;
 }

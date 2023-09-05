@@ -6,27 +6,40 @@ var clickMouse = new THREE.Vector2();
 var mouseMove = new THREE.Vector2();
 var axesHelper = new THREE.AxesHelper(5);
 
-var width = window.innerWidth;
-var height = window.innerHeight;
+var mouse = new THREE.Vector2();
+var pNormal = new THREE.Vector3(0, 1, 0); // plane's normal
+var planeIntersect = new THREE.Vector3(); // point of intersection with the plane
+var pIntersect = new THREE.Vector3(); // point of intersection with an object (plane's point)
+var shift = new THREE.Vector3(); // distance between position of an object and points of intersection with the object
+var isDragging = false;
+var dragObject;
+var offset = new THREE.Vector3();
+var intersection = new THREE.Vector3();
+var Dragged;
+var selectedCube = null;
+
+var width = innerWidth;
+var height = innerHeight;
 
 var draggable = null;
 var Selected = null;
 
 var isMoving = false;
 var leftShiftPressed = false;
+var controlPressed = false;
 
 var intersects = [];
 var allCubes = [];
 
 var cube;
 
-var previousMousePosition = { x: 0, y: 0 };
+var cubePosition = { x: 0, y: 0, z: 0 };
 var mousePreviousPosition = { x: 0, y: 0, };
 var pos = { x: 0, y: -1, z: 0 };
 var scale = { x: 50, y: 2, z: 50 };
 
-camera = new THREE.PerspectiveCamera(30, width / height, 1, 1000);
-camera.position.set(0, 20, 70);
+camera = new THREE.PerspectiveCamera(60, width / height, 1, 1000);
+camera.position.set(0, 3, 5);
 
 
 renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -173,11 +186,12 @@ function cloneCube(cubex) {
   const cubeModel = model_url;
   loader.load(cubeModel, (gltf) => {
     cube = gltf.scene;
-    cube.scale.set(15, 15, 15);
     cube.userData.draggable = true;
     cube.userData.type = cubex.title;
+    cube.userData.position = cubePosition;
     allCubes.push(cube);
     scene.add(cube);
+    console.log('allCubes', allCubes);
   });
 }
 
@@ -195,8 +209,7 @@ function handleRotateCubes() {
 // MOVEMENT CONTROLS
 jQuery("#moveCube").on("click", handleMoveCube);
 function handleMoveCube() {
-  controls.enable = false;
-  controls.reset();
+  controls.enabled = false;
   jQuery("#moveCube").addClass("active");
   jQuery("#rotateCube").removeClass("active");
   renderer.domElement.addEventListener("pointerdown", onModelDown, false);
@@ -216,11 +229,16 @@ function deleteAllCubes() {
 // DELETE SELECTED CUBE
 jQuery("#deleteCube").on("click", deleteSelectedCube);
 function deleteSelectedCube() {
-  if (Selected) {
-    scene.remove(Selected);
-    Selected = null;
+  console.log('Selected', selectedCube);
+  console.log('allCubes', allCubes);
+  for (let i = 0; i < allCubes.length; i++) {
+    if (allCubes[i].children[0] === selectedCube.parent) {
+      scene.remove(allCubes[i]);
+      allCubes.splice(i, 1);
+    }
   }
 }
+
 
 const getPrimaryCubes = () => {
   const uCube = Object.values(WP_PRODUCTS).filter(
@@ -346,144 +364,203 @@ function animate() {
 }
 
 // ZOOM IN AND OUT CONTROLS
-const zoomInFunction = (e) => {
-  const fov = getFov();
-  camera.fov = clickZoom(fov, "zoomIn");
-  camera.updateProjectionMatrix();
-};
-jQuery("#zoomIn").on("click", zoomInFunction);
-
-const zoomOutFunction = (e) => {
-  const fov = getFov();
-  camera.fov = clickZoom(fov, "zoomOut");
-  camera.updateProjectionMatrix();
-};
-jQuery("#zoomOut").on("click", zoomOutFunction);
-
-const handleRangeChange = (e) => {
-  const fov = getFov();
-  camera.fov = e.target.value;
-  camera.updateProjectionMatrix();
-};
-jQuery('input[type="range"]').on("change", handleRangeChange);
-
-jQuery("#zoomIn").on("click", () => {
-  jQuery('input[type="range"]').val(clickZoom(getFov(), "zoomIn"));
-});
-jQuery("#zoomOut").on("click", () => {
-  jQuery('input[type="range"]').val(clickZoom(getFov(), "zoomOut"));
-});
-
+// Define the clickZoom function
 const clickZoom = (value, zoomType) => {
-  if (value >= 25 && zoomType === "zoomIn") {
-    return value - 5;
-  } else if (value <= 40 && zoomType === "zoomOut") {
-    return value + 5;
-  } else {
-    return value;
+  if (zoomType === "zoomIn") {
+    value = Math.max(29, value - 3); // Ensure it doesn't go below 29
+  } else if (zoomType === "zoomOut") {
+    value = Math.min(44, value + 3); // Ensure it doesn't exceed 44
   }
+  return value;
 };
+
+
+// Define the getFov function
 const getFov = () => {
   return Math.floor(
     (2 *
-      Math.atan(camera.getFilmHeight() / 2 / camera.getFocalLength()) *
-      180) /
-    Math.PI
+      Math.atan(camera.getFilmHeight() / (2 * camera.getFocalLength())) *
+      (180 / Math.PI))
   );
 };
+
+// Function to update the camera FOV and input range value
+const updateCameraFOV = (updatedFov) => {
+  camera.fov = updatedFov;
+  camera.updateProjectionMatrix();
+  jQuery('input[type="range"]').val(updatedFov);
+};
+
+// Function to handle zoom in button click
+jQuery("#zoomIn").on("click", () => {
+  const currentFov = getFov();
+  const zoomInFov = clickZoom(currentFov, "zoomIn");
+  updateCameraFOV(zoomInFov);
+});
+
+// Function to handle zoom out button click
+jQuery("#zoomOut").on("click", () => {
+  const zoomOut = getFov();
+  const zoomOutFov = clickZoom(zoomOut, "zoomOut");
+  updateCameraFOV(zoomOutFov);
+});
+
+// Function to handle range input change
+jQuery('input[type="range"]').on("input", (e) => {
+  const rangeFov = parseInt(e.target.value);
+  console.log('rangeFov range', rangeFov)
+  updateCameraFOV(rangeFov);
+});
+
+// Initialize camera FOV
+const initialFov = 44;
+updateCameraFOV(initialFov);
+
 
 // MODEL ROTATION
 function onMouseDownRotation(event) {
   event.preventDefault();
-  controls.enableRotate = true;
-  // controls.enablePan = false;
+  controls.enabled = true;
 }
 
 // MODEL MOVEMENT
-function onModelDown(event) {
+// function onModelDown(event) {
+//   event.preventDefault();
+//   intersects = raycaster.intersectObjects(allCubes, true);
+//   if (intersects.length > 0) {
+//     controls.enabled = false;
+//     pIntersect.copy(intersects[0].point);
+//     plane.setFromNormalAndCoplanarPoint(pNormal, pIntersect);
+//     shift.subVectors(intersects[0].object.parent.position, intersects[0].point);
+//     Selected = intersects[0];
+//     isDragging = true;
+//     dragObject = intersects[0].object.parent;
+//     let selectedObjects = [];
+//     selectedObjects.push(intersects[0].object.parent);
+//     outlinePass.selectedObjects = [dragObject];
+//   } else {
+//     outlinePass.selectedObjects = [];
+//   }
+//   renderer.domElement.style.cursor = "grabbing";
+// }
+
+// function onModelUp(event) {
+//   event.preventDefault();
+//   isMoving = false;
+//   renderer.domElement.style.cursor = "auto";
+//   isDragging = false;
+// }
+
+// function onModelMove(event) {
+//   event.preventDefault();
+
+//   mouse.x = (event.clientX / width) * 2 - 1;
+//   mouse.y = - (event.clientY / height) * 2 + 1;
+//   raycaster.setFromCamera(mouse, camera);
+
+//   if (isDragging && !leftShiftPressed) {
+//     raycaster.ray.intersectPlane(plane, planeIntersect);
+//     dragObject.position.addVectors(planeIntersect, shift);
+//     intersects = raycaster.intersectObjects(allCubes, true);
+//     if (intersects.length > 0) {
+//       if (dragObject != intersects[0].object.parent) {
+//         dragObject = intersects[0].object.parent;
+//         plane.setFromNormalAndCoplanarPoint(
+//           camera.getWorldDirection(plane.normal),
+//           dragObject.position);
+//       }
+//     }
+//   } else if (leftShiftPressed && isMoving && !isDragging) {
+//     intersects = raycaster.intersectObjects(allCubes, true);
+//     if (intersects.length > 0) {
+//       let cube = intersects[0].object.parent;
+//       cube.position.y -= event.movementY / 100;
+//       if (cube.position.y < 0) {
+//         cube.position.y = 0;
+//       } else if (cube.position.y > 1) {
+//         cube.position.y = 1;
+//       }
+//     }
+//   }
+
+// }
+
+function onModelMove(event) {
   event.preventDefault();
-  controls.enableRotate = false;
-  isMoving = true;
-  previousMousePosition = { x: (event.clientX / width) * 2 - 1, y: -(event.clientY / height) * 2 + 1, };
-  raycaster.setFromCamera(previousMousePosition, camera);
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  if (Dragged) {
+    if (raycaster.ray.intersectPlane(plane, intersection)) {
+      Dragged.position.copy(intersection.sub(offset));
+    }
+    return;
+  }
   intersects = raycaster.intersectObjects(allCubes, true);
   if (intersects.length > 0) {
-    let selectedObjects = [];
-    selectedObjects.push(intersects[0].object.parent);
-    Selected = intersects[0].object.parent;
-    outlinePass.selectedObjects = [Selected];
+    if (Selected != intersects[0].object.parent) {
+      Selected = intersects[0].object.parent;
+      plane.setFromNormalAndCoplanarPoint(
+        camera.getWorldDirection(plane.normal),
+        Selected.position
+      );
+    }
+    document.body.style.cursor = "pointer";
   } else {
     Selected = null;
+    document.body.style.cursor = "auto";
+  }
+
+}
+
+function onModelDown(event) {
+  event.preventDefault();
+  if (Selected) {
+    controls.enabled = false;
+    Dragged = Selected;
+    if (raycaster.ray.intersectPlane(plane, intersection)) {
+      offset.copy(intersection).sub(Dragged.position);
+    }
+    let selectedObjects = [];
+    selectedCube = Selected;
+    selectedObjects.push(intersects[0].object.parent);
+    outlinePass.selectedObjects = [Selected];
+    document.body.style.cursor = "move";
+  } else {
     outlinePass.selectedObjects = [];
   }
-  renderer.domElement.style.cursor = "grabbing";
 }
 
 function onModelUp(event) {
   event.preventDefault();
-  previousMousePosition = { x: 0, y: 0 };
-  isMoving = false;
-  renderer.domElement.style.cursor = "auto";
-}
-
-function onModelMove(event) {
-  event.preventDefault();
-  if (isMoving && Selected) {
-    const rect = renderer.domElement.getBoundingClientRect();
-    const mousePosition = {
-      x: ((event.clientX - rect.left) / rect.width) * 2 - 1,
-      y: -((event.clientY - rect.top) / rect.height) * 2 + 1,
-    };
-    const deltaMove = {
-      x: mousePosition.x - previousMousePosition.x,
-      y: mousePosition.y - previousMousePosition.y,
-    };
-    if (leftShiftPressed) {
-      mouseMove.y = event.clientY / height * 2.6 + 1;
-      Selected.position.y += deltaMove.y * mouseMove.y;
-      Selected.position.y = Math.min(1.5, Math.max(0, Selected.position.y));
-    } else {
-      mouseMove.y = event.clientY / height * 3 + 1;
-      Selected.position.x += deltaMove.x * mouseMove.y;
-      Selected.position.z -= deltaMove.y * mouseMove.y;
-      Selected.position.x = Math.min(1.5, Math.max(-1.5, Selected.position.x));
-      Selected.position.z = Math.min(1.5, Math.max(-1.5, Selected.position.z));
-    }
-    console.log(Selected.position.x);
-    console.log(Selected.position.z);
-    console.log(Selected.position.y);
-    previousMousePosition = mousePosition;
-
-  } else {
-    renderer.domElement.style.cursor = "auto";
+  controls.enabled = true;
+  if (Selected) {
+    Selected.position.x = (Math.round(Selected.position.x)) / 2.5;
+    Selected.position.y = (Math.round(Selected.position.y)) / 2.5;
+    Selected.position.z = (Math.round(Selected.position.z)) / 2.5;
   }
+  if (Dragged) {
+    Dragged = null;
+  }
+  document.body.style.cursor = "auto";
 }
-
-// const dragControls = new DragControls(allCubes, camera, renderer.domElement);
-
-// dragControls.addEventListener('dragstart', function () {
-//   controls.enabled = false;
-//   console.log('dragstart');
-// });
-// dragControls.addEventListener('drag', function () {
-//   console.log('drag');
-// });
-// dragControls.addEventListener('dragend', function () {
-//   controls.enabled = true;
-//   console.log('dragend');
-// });
 
 // SHIFT KEY DOWN AND UP EVENT FOR MOVING CUBE UP AND DOWN
 window.addEventListener('keydown', (event) => {
   if (event.key === 'Shift') {
     leftShiftPressed = true;
+    isMoving = true;
+    isDragging = false;
   }
 });
 window.addEventListener('keyup', (event) => {
   if (event.key === 'Shift') {
     leftShiftPressed = false;
+    isMoving = false;
+    isDragging = true;
   }
 });
+
 
 // createFloor();
 animate();

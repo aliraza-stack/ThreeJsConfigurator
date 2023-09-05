@@ -105,6 +105,8 @@ function get_product_data()
           'price' => $variation['display_price'],
           'image' => $variation['image']['url'],
           'description' => $variation_object->get_description(),
+          'gltf_url' => get_post_meta( $variation['variation_id'], 'gltf_text_field', 'true' ) //, 'rudgltf_text_fieldr_text', true
+
         );
       }
     }
@@ -176,7 +178,7 @@ function my_threejs_plugin_output()
       <div class="zoom-btn">
         <div class="d-flex justify-content-around">
           <button class="mx-2" id="zoomOut"><img src="<?php echo plugin_dir_url(__FILE__); ?>img/zoom-out.png" /></button>
-          <input type="range" name="volume" min="25" max="40" value="25">
+          <input type="range" name="volume" min="29" max="44" value="29">
           <button class="mx-2" id="zoomIn"><img src="<?php echo plugin_dir_url(__FILE__); ?>img/zoom-in.png" /></button>
         </div>
       </div>
@@ -199,7 +201,7 @@ function my_threejs_plugin_output()
       var WP_PRODUCTS = <?= json_encode($products) ?>;
       var WP_CUBX_DATA = <?= json_encode($cubx_data) ?>;
     </script>
-    <script type="module" src="<?php echo plugin_dir_url(__FILE__); ?>js/configurater.js"></script>
+    <script type="module" src="<?php echo plugin_dir_url(__FILE__); ?>js/configurater.js?v=<?= time() ?>"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/FileSaver.js"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/constants.js"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/common.js"></script>
