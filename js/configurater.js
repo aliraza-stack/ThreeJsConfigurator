@@ -17,9 +17,11 @@ var offset = new THREE.Vector3();
 var intersection = new THREE.Vector3();
 var Dragged;
 var selectedCube = null;
+let selectedObjects = [];
+var lastCube = [];
 
-var width = innerWidth;
-var height = innerHeight;
+var width = window.innerWidth;
+var height = window.innerHeight;
 
 var draggable = null;
 var Selected = null;
@@ -32,6 +34,8 @@ var intersects = [];
 var allCubes = [];
 
 var cube;
+// var GUI = new dat.GUI();
+
 
 var cubePosition = { x: 0, y: 0, z: 0 };
 var mousePreviousPosition = { x: 0, y: 0, };
@@ -39,22 +43,22 @@ var pos = { x: 0, y: -1, z: 0 };
 var scale = { x: 50, y: 2, z: 50 };
 
 camera = new THREE.PerspectiveCamera(60, width / height, 1, 1000);
-camera.position.set(0, 3, 5);
+window.camera = camera;
+camera.position.set(0, 3.5, 7.5);
 
 
 renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(width, height);
 renderer.shadowMap.enabled = true;
-
+// set toon mapping ACESFilmicToneMapping
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+// set exposure to 1.7
+renderer.toneMappingExposure = 1.4;
 document.body.appendChild(renderer.domElement);
 
-window.addEventListener("resize", function () {
-  camera.aspect = width / height;
-  camera.updateProjectionMatrix();
-  renderer.setSize(width, height);
-  effectFXAA.uniforms["resolution"].value.set(1 / width, 1 / height);
-});
+window.addEventListener("resize", resizeWindow);
+
 
 // SCENE
 scene = new THREE.Scene();
@@ -79,29 +83,35 @@ controls.enableZoom = false;
 // controls.enableRotate = flase;
 
 // AMBIENT LIGHT
-// const ambientLight = new THREE.AmbientLight(0xffffff, 1);
-// scene.add(ambientLight);
+const ambientLight = new THREE.AmbientLight("#ffe2a9", 2);
+scene.add(ambientLight);
 
 // HEMISPHERE LIGHT
 window.hemisphereLight = new THREE.HemisphereLight();
-window.hemisphereLight.intensity = 0.5;
-window.hemisphereLight.color = new Color(3, 6, 6);
-window.hemisphereLight.groundColor = new Color(3, 6, 6);
+// window.hemisphereLight.color = new Color(5.5, 6, 9); // 5, 8, 8
+// window.hemisphereLight.groundColor = new Color(5.5, 6, 9);
 window.hemisphereLight.position.set(0, 20, 0);
 scene.add(window.hemisphereLight);
+
+// var hamiSphareFolder = GUI.addFolder("Hemisphere Light");
+// // hamisphare colors ground and color
+// hamiSphareFolder.addColor(window.hemisphereLight, "groundColor");
+// hamiSphareFolder.addColor(window.hemisphereLight, "color");
+// // hamisphare intensity 0 to 10 at 0.01
+// hamiSphareFolder.add(window.hemisphereLight, "intensity", 0, 10, 0.01);
+// hamiSphareFolder.open();
 
 // const helper = new THREE.HemisphereLightHelper(hemisphereLight, 10);
 // scene.add(helper);
 
 
 // DIRECTIONAL LIGHT 1
-// var directionalLight1 = new THREE.DirectionalLight(0xffffff, 2);
+var directionalLight1 = new THREE.DirectionalLight("#ffe4b9", 3);
 // var helper1 = new THREE.DirectionalLightHelper(directionalLight1, 5);
 // scene.add(helper1);
-// directionalLight1.position.set(30, 30, 30);
+directionalLight1.position.set(0.5, 0, 0.866);
 // directionalLight1.target.position.set(0, 0, 0);
-// console.log(directionalLight1.position);
-// scene.add(directionalLight1);
+scene.add(directionalLight1);
 // scene.add(directionalLight1.target);
 // // directionalLight.castShadow = true;
 // // directionalLight.shadow.mapSize.width = 2080;
@@ -111,14 +121,14 @@ scene.add(window.hemisphereLight);
 // // directionalLight.shadow.camera.top = 70;
 // // directionalLight.shadow.camera.bottom = -70;
 
-// // DIRECTIONAL LIGHT 2
-// var directionalLight2 = new THREE.DirectionalLight(0xffffff, 2);
+// DIRECTIONAL LIGHT 2
+var directionalLight2 = new THREE.DirectionalLight("#ffe4b9", 3);
 // var helper2 = new THREE.DirectionalLightHelper(directionalLight2, 5);
 // scene.add(helper2);
-// directionalLight2.position.set(-30, 30, 30);
+directionalLight2.position.set(-0.5, 0, -0.866);
 // directionalLight2.target.position.set(0, 0, 0);
 // console.log(directionalLight2.position);
-// scene.add(directionalLight2);
+scene.add(directionalLight2);
 // scene.add(directionalLight2.target);
 
 // // DIRECTIONAL LIGHT 3
@@ -157,20 +167,22 @@ function createFloor() {
 const composer = new EffectComposer(renderer);
 const renderPass = new RenderPass(scene, camera);
 composer.addPass(renderPass);
-
+const pixelRatio = renderer.getPixelRatio();
 const outlinePass = new OutlinePass(new THREE.Vector2(width, height), scene, camera);
 outlinePass.edgeStrength = 6;
 outlinePass.edgeGlow = 0;
 outlinePass.edgeThickness = 3;
 outlinePass.pulsePeriod = 0;
 outlinePass.usePatternTexture = false;
+outlinePass.resolutionX = 512 * 3;
+outlinePass.resolutionY = 512 * 3;
 outlinePass.visibleEdgeColor.set("#279EFF");
 outlinePass.hiddenEdgeColor.set("#0C356A");
 composer.addPass(outlinePass);
 
 // FXAA SHADER PASS
 const effectFXAA = new ShaderPass(FXAAShader);
-effectFXAA.uniforms["resolution"].value.set(1 / width, 1 / height);
+effectFXAA.uniforms["resolution"].value.set(0.5 / width, 0.5 / height);
 effectFXAA.renderToScreen = true;
 composer.addPass(effectFXAA);
 
@@ -189,10 +201,23 @@ function cloneCube(cubex) {
     cube.userData.draggable = true;
     cube.userData.type = cubex.title;
     cube.userData.position = cubePosition;
+    if (allCubes.length > 0) {
+      const lastCube = allCubes[allCubes.length - 1];
+      if (lastCube.position.x % 3 === 0) {
+        cube.position.x = lastCube.position.x - 2;
+        cube.position.z = lastCube.position.z + 1;
+      } else {
+        cube.position.x = lastCube.position.x + 1;
+        cube.position.z = lastCube.position.z;
+      }
+    } else {
+      cube.position.set(0, 0, 0);
+    }
     allCubes.push(cube);
     scene.add(cube);
   });
 }
+
 
 // ROTATION CONTROLS
 jQuery("#rotateCube").on("click", handleRotateCubes);
@@ -228,8 +253,10 @@ function deleteAllCubes() {
 // DELETE SELECTED CUBE
 jQuery("#deleteCube").on("click", deleteSelectedCube);
 function deleteSelectedCube() {
+  console.log('selectedCube', selectedCube);
+  console.log('allCubes', allCubes);
   for (let i = 0; i < allCubes.length; i++) {
-    if (allCubes[i].children[0] === selectedCube.parent) {
+    if (allCubes[i].children[0] === selectedCube) {
       scene.remove(allCubes[i]);
       allCubes.splice(i, 1);
     }
@@ -260,11 +287,13 @@ const getSecondaryCubes = () => {
 
 const attributesAndMenus = (cubex) => {
   let connectorAttribute = WP_PRODUCTS[cubex.id].attributes["pa_connecter-single"] ?? [];
-  let surfaceAttribute = WP_PRODUCTS[cubex.id].attributes["pa_cube-surface"] ?? [];
+  let usurfaceAttribute = WP_PRODUCTS[cubex.id].attributes["pa_cube-surface"] ?? [];
+  let osurfaceAttribute = WP_PRODUCTS[cubex.id].attributes["pa_o-cube-surface"] ?? [];
   let seatcussionAttribute = WP_PRODUCTS[cubex.id].attributes["pa_seatcushion-single"] ?? [];
 
   let connector_div = connectorAttribute.map((connector) => `<li data-slug="${connector.slug}" onclick="toggleActive(this)"><span style="background-color: ${connector.color}; cursor: pointer;"></span></li>`).join("");
-  let surface_div = surfaceAttribute.map((surface) => `<li data-slug="${surface.slug}" onclick="toggleActive(this)"><span style="background-color: ${surface.color}; cursor: pointer;"></span></li>`).join("");
+  let u_surface_div = usurfaceAttribute.map((u_surface) => `<li data-slug="${u_surface.slug}" onclick="toggleActive(this)"><span style="background-color: ${u_surface.color}; cursor: pointer;"></span></li>`).join("");
+  let o_surface_div = osurfaceAttribute.map((o_surface) => `<li data-slug="${o_surface.slug}" onclick="toggleActive(this)"><span style="background-color: ${o_surface.color}; cursor: pointer;"></span></li>`).join("");
   let seatcussion_div = seatcussionAttribute.map((seatcussion) => `<li data-slug="${seatcussion.slug}" onclick="toggleActive(this)"><span style="background-color: ${seatcussion.color}; cursor: pointer;"></span></li>`).join("");
 
   let { OCubeProducts, UCubeProducts } = getSecondaryCubes();
@@ -272,7 +301,7 @@ const attributesAndMenus = (cubex) => {
   let o_menu_items = OCubeProducts.map((product) => `<a class="dropdown-item" data-product-id="${product.id}" data-name=${product.name} data-info='${JSON.stringify(product)}'">${product.name}</a>`).join("");
   let u_menu_items = UCubeProducts.map((product) => `<a class="dropdown-item" data-product-id="${product.id}" data-name=${product.name} data-info='${JSON.stringify(product)}'">${product.name}</a>`).join("");
 
-  return { connectorAttribute, surfaceAttribute, seatcussionAttribute, connector_div, surface_div, seatcussion_div, u_menu_items, o_menu_items };
+  return { connectorAttribute, surfaceAttribute: osurfaceAttribute, seatcussionAttribute, connector_div, u_surface_div, o_surface_div, seatcussion_div, u_menu_items, o_menu_items };
 };
 
 const cubex = {
@@ -282,7 +311,8 @@ const cubex = {
   image: null,
   menu_items: [],
   connector_div: null,
-  surface_div: null,
+  u_surface_div: null,
+  o_surface_div: null,
   seatcussion_div: null,
 };
 
@@ -292,19 +322,22 @@ jQuery(".btn-switch-cube").click(function () {
   if (jQuery(this).attr("id") === "uCube") {
     cubex.id = uCube.id;
     cubex.type = "uCube";
+    // window.hemisphereLight.intensity = 1.1;
     cubex.menu_items = attributesAndMenus(cubex).u_menu_items;
   } else {
     cubex.id = oCube.id;
     cubex.type = "oCube";
+    // window.hemisphereLight.intensity = 0.6;
     cubex.menu_items = attributesAndMenus(cubex).o_menu_items;
   }
 
-  let { connector_div, surface_div, seatcussion_div } = attributesAndMenus(cubex);
+  let { connector_div, u_surface_div, o_surface_div, seatcussion_div } = attributesAndMenus(cubex);
 
   cubex.title = WP_PRODUCTS[cubex.id].name;
   cubex.image = WP_PRODUCTS[cubex.id].image;
   cubex.connector_div = connector_div;
-  cubex.surface_div = surface_div;
+  cubex.u_surface_div = u_surface_div;
+  cubex.o_surface_div = o_surface_div;
   cubex.seatcussion_div = seatcussion_div;
 
   switchCubeModel(cubex);
@@ -354,10 +387,19 @@ function switchCubeModel(cubex) {
 
 
 function animate() {
+  jQuery("#cube_counters").html(allCubes.length)
   requestAnimationFrame(animate);
   renderer.render(scene, camera);
   controls.update();
   composer.render();
+  resizeWindow();
+}
+
+function resizeWindow() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(window.innerWidth, window.innerHeight);
 }
 
 // ZOOM IN AND OUT CONTROLS
@@ -518,7 +560,6 @@ function onModelDown(event) {
     if (raycaster.ray.intersectPlane(plane, intersection)) {
       offset.copy(intersection).sub(Dragged.position);
     }
-    let selectedObjects = [];
     selectedCube = Selected;
     selectedObjects.push(intersects[0].object.parent);
     outlinePass.selectedObjects = [Selected];
@@ -532,31 +573,15 @@ function onModelUp(event) {
   event.preventDefault();
   controls.enabled = true;
   if (Selected) {
-    Selected.position.x = (Math.round(Selected.position.x)) / 2.5;
-    Selected.position.y = (Math.round(Selected.position.y)) / 2.7;
-    Selected.position.z = (Math.round(Selected.position.z)) / 2.5;
+    Selected.position.x = Math.round(Selected.position.x);
+    Selected.position.y = (Math.round(Selected.position.y)) / 1.05;
+    Selected.position.z = Math.round(Selected.position.z);
   }
   if (Dragged) {
     Dragged = null;
   }
   document.body.style.cursor = "auto";
 }
-
-// SHIFT KEY DOWN AND UP EVENT FOR MOVING CUBE UP AND DOWN
-window.addEventListener('keydown', (event) => {
-  if (event.key === 'Shift') {
-    leftShiftPressed = true;
-    isMoving = true;
-    isDragging = false;
-  }
-});
-window.addEventListener('keyup', (event) => {
-  if (event.key === 'Shift') {
-    leftShiftPressed = false;
-    isMoving = false;
-    isDragging = true;
-  }
-});
 
 
 // createFloor();

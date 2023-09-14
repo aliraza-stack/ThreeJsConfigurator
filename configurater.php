@@ -31,6 +31,14 @@ function get_web_data()
   return $web_data;
 }
 
+function get_wp_roles()
+{
+  global $wp_roles;
+  $all_roles = $wp_roles->roles;
+  $editable_roles = apply_filters('editable_roles', $all_roles);
+  return $editable_roles;
+}
+
 function get_product_data()
 {
   $args = array(
@@ -70,7 +78,7 @@ function get_product_data()
               if ($term->name === $attribute_value) {
                 $meta_values = get_term_meta($term->term_id);
                 $product_attribute_colors = isset($meta_values['product_attribute_color']) ? $meta_values['product_attribute_color'] : array();
-                $color = !empty($product_attribute_colors) ? $product_attribute_colors[0] : '';
+                $color = !empty($product_attribute_colors) ? $product_attribute_colors[0] : 'black';
 
                 if (!isset($term_names[$term->slug])) {
                   $term_names[] = array(
@@ -105,7 +113,7 @@ function get_product_data()
           'price' => $variation['display_price'],
           'image' => $variation['image']['url'],
           'description' => $variation_object->get_description(),
-          'gltf_url' => get_post_meta( $variation['variation_id'], 'gltf_text_field', 'true' ) //, 'rudgltf_text_fieldr_text', true
+          'gltf_url' => get_post_meta($variation['variation_id'], 'gltf_text_field', 'true') //, 'rudgltf_text_fieldr_text', true
 
         );
       }
@@ -115,7 +123,6 @@ function get_product_data()
       'id' => $product->ID,
       'name' => $product->post_title,
       'slug' => $product->post_name,
-      'x' => $product,
       'image' => get_the_post_thumbnail_url($product->ID),
       'category' => get_the_terms($product->ID, 'product_cat')[0]->name,
       'variants' => $variant_data,
@@ -132,6 +139,7 @@ function my_threejs_plugin_output()
 {
   $products = get_product_data();
   $cubx_data = get_web_data();
+  $wp_roles = get_wp_roles();
   ob_start();
 ?>
   <!DOCTYPE html>
@@ -141,17 +149,17 @@ function my_threejs_plugin_output()
     <title>Configurater</title>
     <meta charset="utf-8" />
     <link rel="shortcut icon" />
-    <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__); ?>css/style.css" />
+    <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__); ?>css/style.css?v=<?= time() ?>" />
   </head>
 
   <body>
     <div class="left-toolbar-box position-fixed">
       <ul>
         <li>
-          <div class="item" id="moveCube">
+          <button class="item move-btn" id="moveCube">
             <img src="<?php echo plugin_dir_url(__FILE__); ?>img/move.png" alt="" />
             <div>move</div>
-          </div>
+          </button>
         </li>
         <li>
           <div class="item" id="deleteCube">
@@ -200,11 +208,12 @@ function my_threejs_plugin_output()
       var WP_CART_DATA = {};
       var WP_PRODUCTS = <?= json_encode($products) ?>;
       var WP_CUBX_DATA = <?= json_encode($cubx_data) ?>;
+      var WP_ROLES = <?= json_encode($wp_roles) ?>;
     </script>
     <script type="module" src="<?php echo plugin_dir_url(__FILE__); ?>js/configurater.js?v=<?= time() ?>"></script>
-    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/FileSaver.js"></script>
-    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/constants.js"></script>
-    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/common.js"></script>
+    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/FileSaver.js?v=<?= time() ?>"></script>
+    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/constants.js?v=<?= time() ?>"></script>
+    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/common.js?v=<?= time() ?>"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/postprocessing/Pass.js"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/postprocessing/CopyShader.js"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/postprocessing/EffectComposer.js"></script>
@@ -214,6 +223,7 @@ function my_threejs_plugin_output()
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/postprocessing/MaskPass.js"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/DragControls.js"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/postprocessing/FXAAShader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.js?v=<?= time() ?>"></script>
   </body>
 
   </html>

@@ -9,7 +9,8 @@ CubeModel.init_cube = function (cubex) {
         <div>
             <div id="cubex-variants-${cubex.id}" class="d-flex">
                 <div class="left-side">
-                  <div class="title">${cubex.title}</div>
+                  <div class="title">${cubex.title} <div id="cube_counters"></div></div>
+                  <div id="cube_counters"></div>
                   <div>
                     <img id="Textures-${cubex.id}" src='${cubex.image}' alt="${cubex.model_url}" class='cubeImage'>
                   </div>
@@ -21,7 +22,7 @@ CubeModel.init_cube = function (cubex) {
                   </div>
                   <div class="selectors">
                       <div>Cube Surface</div>
-                      <ul data-product-id="${cubex.id}">${cubex.surface_div}</ul>
+                      <ul data-product-id="${cubex.id}">${cubex.title === "O-Cube" ? cubex.o_surface_div : cubex.u_surface_div}</ul>
                   </div>
                 </div>
             </div>
@@ -82,7 +83,7 @@ CubeModel.init_dropdown = function (cubex) {
       return "Connectors";
     } else if (key === "pa_seatcushion" || key === "pa_seatcushions-single") {
       return "Seat Cussions";
-    } else if (key === "pa_cube-surface") {
+    } else if (key === "pa_cube-surface" || key === "pa_o-cube-surface") {
       return "Cube Surface";
     }
     return "";

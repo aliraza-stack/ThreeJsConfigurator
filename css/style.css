@@ -4,7 +4,6 @@ html {
   height: 100%;
   width: 100%;
   overflow: hidden;
-  background: #DFDFDF;
 }
 
 body {
@@ -12,6 +11,13 @@ body {
   font-family: 'Orbitron', sans-serif;
   overflow-y: hidden !important;
   overflow-x: hidden !important;
+}
+
+.page-id-1821 {
+  background: #dfdfdf !important;
+}
+.page-id-1226 {
+  background: #dfdfdf !important;
 }
 
 .position-absolute {
@@ -45,6 +51,7 @@ body {
   font-weight: 500;
   color: #E8E0C2;
   margin-bottom: 10px;
+  display: flex;
 }
 
 .CubeSet .left-side img {
@@ -144,6 +151,8 @@ body {
   font-family: "Orbitron", sans-serif;
   text-align: center;
   cursor: pointer;
+  background-color: #ffffff00 !important;
+  padding: 10px !important;
 }
 .left-toolbar-box .item img {
   width: 20px;
@@ -182,6 +191,21 @@ body {
   padding: 0 !important;
   height: 50px;
   margin: 0;
+}
+
+.move-btn.active{
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #fff;
+  border-color: #fff;
+  padding: 10px !important;
+}
+
+.cubeImage{
+  cursor: pointer;
+}
+
+#cube_counters{
+  margin-left: 5px;
 }
 
 .right-box .cube-tabs button:active,
