@@ -7,10 +7,10 @@ var mouseMove = new THREE.Vector2();
 var axesHelper = new THREE.AxesHelper(5);
 
 var mouse = new THREE.Vector2();
-var pNormal = new THREE.Vector3(0, 1, 0); // plane's normal
-var planeIntersect = new THREE.Vector3(); // point of intersection with the plane
-var pIntersect = new THREE.Vector3(); // point of intersection with an object (plane's point)
-var shift = new THREE.Vector3(); // distance between position of an object and points of intersection with the object
+var pNormal = new THREE.Vector3(0, 1, 0);
+var planeIntersect = new THREE.Vector3();
+var pIntersect = new THREE.Vector3();
+var shift = new THREE.Vector3();
 var isDragging = false;
 var dragObject;
 var offset = new THREE.Vector3();
@@ -46,18 +46,21 @@ camera = new THREE.PerspectiveCamera(60, width / height, 1, 1000);
 window.camera = camera;
 camera.position.set(0, 3.5, 7.5);
 
+const rendererOptions = {
+  antialias: true,
+};
 
-renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer = new THREE.WebGLRenderer({ ...rendererOptions });
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(width, height);
 renderer.shadowMap.enabled = true;
-// set toon mapping ACESFilmicToneMapping
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-// set exposure to 1.7
 renderer.toneMappingExposure = 1.4;
 document.body.appendChild(renderer.domElement);
 
 window.addEventListener("resize", resizeWindow);
+renderer.setClearColor(0xdfdfdf);
+
 
 
 // SCENE
@@ -86,12 +89,37 @@ controls.enableZoom = false;
 const ambientLight = new THREE.AmbientLight("#ffe2a9", 2);
 scene.add(ambientLight);
 
+// // GUI FOLDER FOR AMBIENT LIGHT
+// var ambientLightFolder = GUI.addFolder("Ambient Light");
+// // ambientLight color
+// ambientLightFolder.addColor(ambientLight, "color");
+// // ambientLight intensity 0 to 10 at 0.01
+// ambientLightFolder.add(ambientLight, "intensity", 0, 10, 0.01);
+// // position of ambientLight
+// ambientLightFolder.add(ambientLight.position, "x", -10, 10, 0.01);
+// ambientLightFolder.add(ambientLight.position, "y", -10, 10, 0.01);
+// ambientLightFolder.add(ambientLight.position, "z", -10, 10, 0.01);
+// ambientLightFolder.open();
+
 // HEMISPHERE LIGHT
 window.hemisphereLight = new THREE.HemisphereLight();
 // window.hemisphereLight.color = new Color(5.5, 6, 9); // 5, 8, 8
 // window.hemisphereLight.groundColor = new Color(5.5, 6, 9);
 window.hemisphereLight.position.set(0, 20, 0);
 scene.add(window.hemisphereLight);
+
+// GUI FOLDER FOR HEMISPHERE LIGHT
+// const hamiSphareFolder = GUI.addFolder("Hemisphere Light");
+// // hamisphare colors ground and color
+// hamiSphareFolder.addColor(window.hemisphereLight, "groundColor");
+// hamiSphareFolder.addColor(window.hemisphereLight, "color");
+// // hamisphare intensity 0 to 10 at 0.01
+// hamiSphareFolder.add(window.hemisphereLight, "intensity", 0, 10, 0.01);
+// // position of hamisphare
+// hamiSphareFolder.add(window.hemisphereLight.position, "x", -10, 10, 0.01);
+// hamiSphareFolder.add(window.hemisphereLight.position, "y", -10, 10, 0.01);
+// hamiSphareFolder.add(window.hemisphereLight.position, "z", -10, 10, 0.01);
+// hamiSphareFolder.open();
 
 // var hamiSphareFolder = GUI.addFolder("Hemisphere Light");
 // // hamisphare colors ground and color
@@ -107,11 +135,24 @@ scene.add(window.hemisphereLight);
 
 // DIRECTIONAL LIGHT 1
 var directionalLight1 = new THREE.DirectionalLight("#ffe4b9", 3);
+directionalLight1.position.set(0.5, 0, 0.866);
+scene.add(directionalLight1);
+
+// // GUI FOLDER FOR DIRECTIONAL LIGHT 1
+// var directionalLight1Folder = GUI.addFolder("Directional Light 1");
+// // directionalLight1 color
+// directionalLight1Folder.addColor(directionalLight1, "color");
+// // directionalLight1 intensity 0 to 10 at 0.01
+// directionalLight1Folder.add(directionalLight1, "intensity", 0, 10, 0.01);
+// // position of directionalLight1
+// directionalLight1Folder.add(directionalLight1.position, "x", -10, 10, 0.01);
+// directionalLight1Folder.add(directionalLight1.position, "y", -10, 10, 0.01);
+// directionalLight1Folder.add(directionalLight1.position, "z", -10, 10, 0.01);
+// directionalLight1Folder.open();
+
 // var helper1 = new THREE.DirectionalLightHelper(directionalLight1, 5);
 // scene.add(helper1);
-directionalLight1.position.set(0.5, 0, 0.866);
 // directionalLight1.target.position.set(0, 0, 0);
-scene.add(directionalLight1);
 // scene.add(directionalLight1.target);
 // // directionalLight.castShadow = true;
 // // directionalLight.shadow.mapSize.width = 2080;
@@ -122,13 +163,13 @@ scene.add(directionalLight1);
 // // directionalLight.shadow.camera.bottom = -70;
 
 // DIRECTIONAL LIGHT 2
-var directionalLight2 = new THREE.DirectionalLight("#ffe4b9", 3);
+// var directionalLight2 = new THREE.DirectionalLight("#ffe4b9", 3);
+// directionalLight2.position.set(-0.5, 0, -0.866);
+// scene.add(directionalLight2);
 // var helper2 = new THREE.DirectionalLightHelper(directionalLight2, 5);
 // scene.add(helper2);
-directionalLight2.position.set(-0.5, 0, -0.866);
 // directionalLight2.target.position.set(0, 0, 0);
 // console.log(directionalLight2.position);
-scene.add(directionalLight2);
 // scene.add(directionalLight2.target);
 
 // // DIRECTIONAL LIGHT 3
@@ -152,16 +193,16 @@ scene.add(directionalLight2);
 // scene.add(directionalLight4.target);
 
 // FLOOR PLANE
-function createFloor() {
-  let blockPlane = new THREE.Mesh(
-    new THREE.BoxBufferGeometry(),
-    new THREE.MeshPhongMaterial({ color: 0xdfdfdf, transparent: true, opacity: 0, })
-  );
-  blockPlane.position.set(pos.x, pos.y, pos.z);
-  blockPlane.scale.set(scale.x, scale.y, scale.z);
-  blockPlane.receiveShadow = true;
-  scene.add(blockPlane);
-}
+// function createFloor() {
+//   let blockPlane = new THREE.Mesh(
+//     new THREE.BoxBufferGeometry(),
+//     new THREE.MeshPhongMaterial({ color: 0xdfdfdf, transparent: true, opacity: 0, })
+//   );
+//   blockPlane.position.set(pos.x, pos.y, pos.z);
+//   blockPlane.scale.set(scale.x, scale.y, scale.z);
+//   blockPlane.receiveShadow = true;
+//   scene.add(blockPlane);
+// }
 
 // MODEL OUTLINE PASS
 const composer = new EffectComposer(renderer);
@@ -169,29 +210,59 @@ const renderPass = new RenderPass(scene, camera);
 composer.addPass(renderPass);
 const pixelRatio = renderer.getPixelRatio();
 const outlinePass = new OutlinePass(new THREE.Vector2(width, height), scene, camera);
-outlinePass.edgeStrength = 6;
+outlinePass.edgeStrength = 10;
 outlinePass.edgeGlow = 0;
-outlinePass.edgeThickness = 3;
-outlinePass.pulsePeriod = 0;
+outlinePass.edgeThickness = 0.5;
+outlinePass.pulsePeriod = 5;
 outlinePass.usePatternTexture = false;
 outlinePass.resolutionX = 512 * 3;
 outlinePass.resolutionY = 512 * 3;
-outlinePass.visibleEdgeColor.set("#279EFF");
-outlinePass.hiddenEdgeColor.set("#0C356A");
+outlinePass.visibleEdgeColor = new THREE.Color(0, 65, 255); // Red: 0, Green: 65, Blue: 255
+outlinePass.hiddenEdgeColor = new THREE.Color(0, 26, 255);  // Red: 0, Green: 26, Blue: 255
 composer.addPass(outlinePass);
+// // GUI FOLDER FOR OUTLINE PASS
+// var outlinePassFolder = GUI.addFolder("Outline Pass");
+// outlinePassFolder.add(outlinePass, "edgeStrength", 0, 10, 0.1);
+// outlinePassFolder.add(outlinePass, "edgeGlow", 0, 10, 0.1);
+// outlinePassFolder.add(outlinePass, "edgeThickness", 0, 10, 0.1);
+// outlinePassFolder.add(outlinePass, "pulsePeriod", 0, 5, 0.1);
+// // color for visible and hidden edges of the outline
+// outlinePassFolder.addColor(outlinePass, "visibleEdgeColor");
+// outlinePassFolder.addColor(outlinePass, "hiddenEdgeColor");
+
+// outlinePassFolder.open()
 
 // FXAA SHADER PASS
 const effectFXAA = new ShaderPass(FXAAShader);
-effectFXAA.uniforms["resolution"].value.set(0.5 / width, 0.5 / height);
+effectFXAA.uniforms["resolution"].value.set(1 / width, 1 / height);
 effectFXAA.renderToScreen = true;
 composer.addPass(effectFXAA);
+
+const progressBar = document.getElementById("progress-bar");
+
+const loading = new LoadingManager();
+loading.onStart = function (url, itemsLoaded, itemsTotal) {
+  progressBar.style.display = "flex";
+};
+
+const progressComplete = document.getElementById("progress-bar");
+
+loading.onLoad = function () {
+  progressComplete.style.display = "none";
+};
+loading.onProgress = function (url, itemsLoaded, itemsTotal) {
+  progressBar.style.width = `${(itemsLoaded / itemsTotal) * 100}%`;
+};
+loading.onError = function (url) {
+  console.log("There was an error loading model");
+};
 
 // CUBE LOADER
 function cloneCube(cubex) {
   const cubexVariants = jQuery("#cubex-variants-" + cubex.id);
   const imageElement = cubexVariants.find("img")[0];
-  let model_url = imageElement.alt;
-  const loader = new GLTFLoader();
+  let model_url = imageElement.dataset.modelUrl;
+  const loader = new GLTFLoader(loading);
   const dracoLoader = new DRACOLoader();
   dracoLoader.setDecoderPath("/wp-content/plugins/Configurater/libs/draco/");
   loader.setDRACOLoader(dracoLoader);
@@ -201,20 +272,27 @@ function cloneCube(cubex) {
     cube.userData.draggable = true;
     cube.userData.type = cubex.title;
     cube.userData.position = cubePosition;
-    if (allCubes.length > 0) {
-      const lastCube = allCubes[allCubes.length - 1];
-      if (lastCube.position.x % 3 === 0) {
-        cube.position.x = lastCube.position.x - 2;
-        cube.position.z = lastCube.position.z + 1;
-      } else {
-        cube.position.x = lastCube.position.x + 1;
-        cube.position.z = lastCube.position.z;
-      }
-    } else {
-      cube.position.set(0, 0, 0);
-    }
     allCubes.push(cube);
+    window.cube = allCubes;
     scene.add(cube);
+    console.log('allCubes', allCubes);
+    for (let i = 0; i < allCubes.length; i++) {
+      if (allCubes.length > 0 && allCubes[i].userData.type === "O-Cube" || allCubes[i].userData.type === "U-Cube") {
+        const lastCube = allCubes[allCubes.length - 1];
+        if (lastCube.position.x % 3 === 0) {
+          cube.position.x = lastCube.position.x - 2;
+          cube.position.z = lastCube.position.z + 1;
+        } else {
+          cube.position.x = lastCube.position.x + 1;
+          cube.position.z = lastCube.position.z;
+        }
+      } else {
+        cube.position.set(0, 0, 0);
+      }
+    }
+    // allCubes.push(cube);
+
+
   });
 }
 

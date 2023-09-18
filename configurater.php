@@ -175,6 +175,13 @@ function my_threejs_plugin_output()
         </li>
       </ul>
     </div>
+    <div id="progress-bar" class="screen">
+      <div class="loader">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+    </div>
     <div class="right-box position-absolute" id="divA">
       <div class="d-flex justify-content-around cube-tabs">
         <button id="uCube" class="btn btn-link btn-switch-cube fs-10 text-decoration-none rounded-0">U-Cube</button>

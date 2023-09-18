@@ -12,7 +12,7 @@ CubeModel.init_cube = function (cubex) {
                   <div class="title">${cubex.title} <div id="cube_counters"></div></div>
                   <div id="cube_counters"></div>
                   <div>
-                    <img id="Textures-${cubex.id}" src='${cubex.image}' alt="${cubex.model_url}" class='cubeImage'>
+                    <img id="Textures-${cubex.id}" src='${cubex.image}' alt="${cubex.title}" data-model-url="${cubex.model_url}" class='cubeImage'>
                   </div>
                 </div>
                 <div class="right-side">
@@ -140,5 +140,5 @@ function updateVariantImage(productId) {
   const imageElement = cubexVariants.querySelector(".cubeImage");
   imageElement.src = matchedVariant ? matchedVariant.image : product.image;
 
-  imageElement.alt = matchedVariant ? matchedVariant.gltf_url : product.gltf_url;
+  imageElement.dataset.modelUrl = matchedVariant ? matchedVariant.gltf_url : product.gltf_url;
 }
