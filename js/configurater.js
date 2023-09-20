@@ -24,7 +24,7 @@ var width = window.innerWidth;
 var height = window.innerHeight;
 
 var draggable = null;
-var Selected = null;
+var selected = null;
 
 var isMoving = false;
 var leftShiftPressed = false;
@@ -268,20 +268,21 @@ function cloneCube(cubex) {
   loader.setDRACOLoader(dracoLoader);
   const cubeModel = model_url;
   loader.load(cubeModel, (gltf) => {
-    cube = gltf.scene;
-    cube.userData.draggable = true;
+    cube = gltf.scene.clone();
+    cube.userData.draggable = false;
+    // for each make the title like O-Cube-1, O-Cube-2, O-Cube-3
+    cube.name = cubex.title + "-" + (allCubes.length + 1);
     cube.userData.type = cubex.title;
     cube.userData.position = cubePosition;
     allCubes.push(cube);
     window.cube = allCubes;
     scene.add(cube);
-    console.log('allCubes', allCubes);
     for (let i = 0; i < allCubes.length; i++) {
-      if (allCubes.length > 0 && allCubes[i].userData.type === "O-Cube" || allCubes[i].userData.type === "U-Cube") {
+      if (allCubes.length > 0 && allCubes[i].userData.type === OCUBE || allCubes[i].userData.type === UCUBE) {
         const lastCube = allCubes[allCubes.length - 1];
         if (lastCube.position.x % 3 === 0) {
           cube.position.x = lastCube.position.x - 2;
-          cube.position.z = lastCube.position.z + 1;
+          cube.position.z = lastCube.position.z - 1;
         } else {
           cube.position.x = lastCube.position.x + 1;
           cube.position.z = lastCube.position.z;
@@ -355,10 +356,10 @@ const getPrimaryCubes = () => {
 const getSecondaryCubes = () => {
   let { uCube, oCube } = getPrimaryCubes();
   let OCubeProducts = Object.values(WP_PRODUCTS).filter(
-    (product) => product.category == "O-Cube" && product.id !== oCube.id
+    (product) => product.category == OCUBE && product.id !== oCube.id
   );
   let UCubeProducts = Object.values(WP_PRODUCTS).filter(
-    (product) => product.category == "U-Cube" && product.id !== uCube.id
+    (product) => product.category == UCUBE && product.id !== uCube.id
   );
   return { OCubeProducts, UCubeProducts };
 };
@@ -538,69 +539,23 @@ updateCameraFOV(initialFov);
 function onMouseDownRotation(event) {
   event.preventDefault();
   controls.enabled = true;
+  controls.enableRotate = true;
 }
 
-// MODEL MOVEMENT
-// function onModelDown(event) {
+// window.addEventListener("mousemove", function (event) {
 //   event.preventDefault();
+//   mouseMove.x = (event.clientX / width) * 2 - 1;
+//   mouseMove.y = -(event.clientY / height) * 2 + 1;
+//   raycaster.setFromCamera(mouseMove, camera);
 //   intersects = raycaster.intersectObjects(allCubes, true);
 //   if (intersects.length > 0) {
-//     controls.enabled = false;
-//     pIntersect.copy(intersects[0].point);
-//     plane.setFromNormalAndCoplanarPoint(pNormal, pIntersect);
-//     shift.subVectors(intersects[0].object.parent.position, intersects[0].point);
-//     Selected = intersects[0];
-//     isDragging = true;
-//     dragObject = intersects[0].object.parent;
-//     let selectedObjects = [];
-//     selectedObjects.push(intersects[0].object.parent);
-//     outlinePass.selectedObjects = [dragObject];
-//   } else {
+//     document.body.style.cursor = "pointer";
+//     outlinePass.selectedObjects = [intersects[0].object.parent];
+//   } else if (selected === null) {
+//     document.body.style.cursor = "auto";
 //     outlinePass.selectedObjects = [];
 //   }
-//   renderer.domElement.style.cursor = "grabbing";
-// }
-
-// function onModelUp(event) {
-//   event.preventDefault();
-//   isMoving = false;
-//   renderer.domElement.style.cursor = "auto";
-//   isDragging = false;
-// }
-
-// function onModelMove(event) {
-//   event.preventDefault();
-
-//   mouse.x = (event.clientX / width) * 2 - 1;
-//   mouse.y = - (event.clientY / height) * 2 + 1;
-//   raycaster.setFromCamera(mouse, camera);
-
-//   if (isDragging && !leftShiftPressed) {
-//     raycaster.ray.intersectPlane(plane, planeIntersect);
-//     dragObject.position.addVectors(planeIntersect, shift);
-//     intersects = raycaster.intersectObjects(allCubes, true);
-//     if (intersects.length > 0) {
-//       if (dragObject != intersects[0].object.parent) {
-//         dragObject = intersects[0].object.parent;
-//         plane.setFromNormalAndCoplanarPoint(
-//           camera.getWorldDirection(plane.normal),
-//           dragObject.position);
-//       }
-//     }
-//   } else if (leftShiftPressed && isMoving && !isDragging) {
-//     intersects = raycaster.intersectObjects(allCubes, true);
-//     if (intersects.length > 0) {
-//       let cube = intersects[0].object.parent;
-//       cube.position.y -= event.movementY / 100;
-//       if (cube.position.y < 0) {
-//         cube.position.y = 0;
-//       } else if (cube.position.y > 1) {
-//         cube.position.y = 1;
-//       }
-//     }
-//   }
-
-// }
+// });
 
 function onModelMove(event) {
   event.preventDefault();
@@ -615,16 +570,17 @@ function onModelMove(event) {
   }
   intersects = raycaster.intersectObjects(allCubes, true);
   if (intersects.length > 0) {
-    if (Selected != intersects[0].object.parent) {
-      Selected = intersects[0].object.parent;
+    if (selected != intersects[0].object.parent) {
+      selected = intersects[0].object.parent;
       plane.setFromNormalAndCoplanarPoint(
         camera.getWorldDirection(plane.normal),
-        Selected.position
+        selected.position
       );
     }
+    outlinePass.selectedObjects = [selected];
     document.body.style.cursor = "pointer";
   } else {
-    Selected = null;
+    selected = null;
     document.body.style.cursor = "auto";
   }
 
@@ -632,15 +588,16 @@ function onModelMove(event) {
 
 function onModelDown(event) {
   event.preventDefault();
-  if (Selected) {
+  if (selected) {
+    selected.parent.userData.draggable = true;
     controls.enabled = false;
-    Dragged = Selected;
+    Dragged = selected;
     if (raycaster.ray.intersectPlane(plane, intersection)) {
       offset.copy(intersection).sub(Dragged.position);
     }
-    selectedCube = Selected;
+    selectedCube = selected;
     selectedObjects.push(intersects[0].object.parent);
-    outlinePass.selectedObjects = [Selected];
+    outlinePass.selectedObjects = [intersects[0].object.parent];
     document.body.style.cursor = "move";
   } else {
     outlinePass.selectedObjects = [];
@@ -650,17 +607,21 @@ function onModelDown(event) {
 function onModelUp(event) {
   event.preventDefault();
   controls.enabled = true;
-  if (Selected) {
-    Selected.position.x = Math.round(Selected.position.x);
-    Selected.position.y = (Math.round(Selected.position.y)) / 1.05;
-    Selected.position.z = Math.round(Selected.position.z);
+  if (selected) {
+    if (selected.parent.userData.type === UCUBE || selected.parent.userData.type === OCUBE) {
+      selected.position.x = Math.round(selected.position.x);
+      selected.position.y = (Math.round(selected.position.y)) / 1.05;
+      selected.position.z = Math.round(selected.position.z);
+    }
   }
+
+
   if (Dragged) {
     Dragged = null;
+    selected.parent.userData.draggable = false;
   }
   document.body.style.cursor = "auto";
 }
-
 
 // createFloor();
 animate();

@@ -217,9 +217,9 @@ function my_threejs_plugin_output()
       var WP_CUBX_DATA = <?= json_encode($cubx_data) ?>;
       var WP_ROLES = <?= json_encode($wp_roles) ?>;
     </script>
+    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/constants.js?v=<?= time() ?>"></script>
     <script type="module" src="<?php echo plugin_dir_url(__FILE__); ?>js/configurater.js?v=<?= time() ?>"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/FileSaver.js?v=<?= time() ?>"></script>
-    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/constants.js?v=<?= time() ?>"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/common.js?v=<?= time() ?>"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/postprocessing/Pass.js"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/postprocessing/CopyShader.js"></script>
