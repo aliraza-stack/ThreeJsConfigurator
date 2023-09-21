@@ -115,7 +115,7 @@ var GLTFLoader = (function () {
         if (onError) {
           onError(e);
         } else {
-          console.error(e);
+          console.error("ERROR");
         }
 
         scope.manager.itemError(url);
@@ -860,8 +860,8 @@ var GLTFLoader = (function () {
     if (transform.texCoord !== undefined) {
       console.warn(
         'THREE.GLTFLoader: Custom UV sets in "' +
-          this.name +
-          '" extension not yet supported.'
+        this.name +
+        '" extension not yet supported.'
       );
     }
 
@@ -2243,10 +2243,10 @@ var GLTFLoader = (function () {
       ) {
         console.warn(
           "THREE.GLTFLoader: Custom UV set " +
-            mapDef.texCoord +
-            " for texture " +
-            mapName +
-            " not yet supported."
+          mapDef.texCoord +
+          " for texture " +
+          mapName +
+          " not yet supported."
         );
       }
 

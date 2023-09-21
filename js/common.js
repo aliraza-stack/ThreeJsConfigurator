@@ -9,7 +9,7 @@ CubeModel.init_cube = function (cubex) {
         <div>
             <div id="cubex-variants-${cubex.id}" class="d-flex">
                 <div class="left-side">
-                  <div class="title">${cubex.title} <div id="cube_counters"></div></div>
+                  <div class="title">${cubex.title} (<div id="cube_counters_${cubex.id}">0</div>)</div>
                   <div>
                     <img id="Textures-${cubex.id}" src='${cubex.image}' alt="${cubex.title}" data-model-url="${cubex.model_url}" class='cubeImage'>
                   </div>
@@ -65,9 +65,9 @@ CubeModel.init_dropdown = function (cubex) {
     const otherCubes = document.getElementById("other-cubes");
     otherCubes.innerHTML += `<div id="cubex-variants-${product.id}" class="d-flex mt-5">
             <div class="left-side">
-                <div class="title">${product.name} <div id="cube_counters"></div></div>
+                <div class="title">${product.name} (<div id="cube_counters_${product.id}">0</div>)</div>
                 <div><img id="Sub-Textures-${product.id}" data-product-id="${product.id}" src="${product.image}"
-                alt="${product.model_url}" class="cubeImage sub-cube-images"></div>
+                alt="${product.name}" data-model-url="${product.model_url}" class="cubeImage sub-cube-images"></div>
             </div>
             <div class="right-side">
                 ${colorSelector}

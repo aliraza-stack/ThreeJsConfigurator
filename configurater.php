@@ -107,14 +107,14 @@ function get_product_data()
         $variation_object = wc_get_product($variation['variation_id']);
         $attributes = $variation_object->get_variation_attributes();
         $variation_name = implode(' - ', $attributes);
+        $gltf_url = get_post_meta($variation['variation_id'], 'gltf_text_field', 'true');
         $variant_data[] = array(
           'id' => $variation['variation_id'],
           'slug' => $variation_name,
           'price' => $variation['display_price'],
           'image' => $variation['image']['url'],
           'description' => $variation_object->get_description(),
-          'gltf_url' => get_post_meta($variation['variation_id'], 'gltf_text_field', 'true') //, 'rudgltf_text_fieldr_text', true
-
+          'gltf_url' => $gltf_url ? $gltf_url : '',
         );
       }
     }
@@ -128,6 +128,9 @@ function get_product_data()
       'variants' => $variant_data,
       'attributes' => $attribute_data,
       'tag' => get_the_terms($product->ID, 'product_tag')[0]->name,
+      'cubes' => get_post_meta($product->ID, 'no_of_cubes', 'true'),
+      'connecters' => get_post_meta($product->ID, 'no_of_cusions', 'true'),
+      'seatcussions' => get_post_meta($product->ID, 'no_of_seatcusions', 'true'),
     );
   }
 
@@ -204,9 +207,17 @@ function my_threejs_plugin_output()
         </button>
       </div>
     </div>
+    <div class="snacks" style="display: none;" id="danger-alert">
+      <div class="fade_snakes alert_snakes alert-danger show">
+        There is an error in loading this model, Please Refresh the page and add it again
+      </div>
+    </div>
+
     <div id="output" style="position: absolute; display: none;"></div>
-    <script src="<?php echo plugin_dir_url(__FILE__); ?>libs/draco/draco_wasm_wrapper.js"></script>
-    <script type="application/wasm" src="<?php echo plugin_dir_url(__FILE__); ?>libs/draco/draco_decoder.wasm"></script>
+    <script type="module" src="<?php echo plugin_dir_url(__FILE__); ?>libs/draco/gltf/draco_decoder.js"></script>
+    <script type="module" src="<?php echo plugin_dir_url(__FILE__); ?>libs/draco/gltf/draco_encoder.js"></script>
+    <script type="module" src="<?php echo plugin_dir_url(__FILE__); ?>libs/draco/gltf/draco_wasm_wrapper.js"></script>
+    <script type="application/wasm" src="<?php echo plugin_dir_url(__FILE__); ?>libs/draco/gltf/draco_decoder.wasm"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/three.module_res_res.js"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/OrbitControls_res_res.js"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/GltfLoader_res_res.js"></script>
@@ -216,6 +227,7 @@ function my_threejs_plugin_output()
       var WP_PRODUCTS = <?= json_encode($products) ?>;
       var WP_CUBX_DATA = <?= json_encode($cubx_data) ?>;
       var WP_ROLES = <?= json_encode($wp_roles) ?>;
+      var WP_DRECO_PATH = '<?php echo plugin_dir_url(__FILE__); ?>libs/draco/gltf/';
     </script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/constants.js?v=<?= time() ?>"></script>
     <script type="module" src="<?php echo plugin_dir_url(__FILE__); ?>js/configurater.js?v=<?= time() ?>"></script>

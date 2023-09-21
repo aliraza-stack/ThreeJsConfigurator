@@ -254,8 +254,17 @@ loading.onProgress = function (url, itemsLoaded, itemsTotal) {
   progressBar.style.width = `${(itemsLoaded / itemsTotal) * 100}%`;
 };
 loading.onError = function (url) {
-  console.log("There was an error loading model");
+  console.log("There was an error loading model : ", url);
+  hideAlert();
 };
+
+function hideAlert() {
+  const alertElement = document.getElementById('danger-alert');
+  alertElement.style.display = 'flex';
+  setTimeout(() => {
+    alertElement.style.display = 'none';
+  }, 4000);
+}
 
 // CUBE LOADER
 function cloneCube(cubex) {
@@ -264,37 +273,85 @@ function cloneCube(cubex) {
   let model_url = imageElement.dataset.modelUrl;
   const loader = new GLTFLoader(loading);
   const dracoLoader = new DRACOLoader();
-  dracoLoader.setDecoderPath("/wp-content/plugins/Configurater/libs/draco/");
+  dracoLoader.setDecoderPath(WP_DRECO_PATH);
+  dracoLoader.setDecoderConfig({ type: 'js' });
+  dracoLoader.preload();
   loader.setDRACOLoader(dracoLoader);
-  const cubeModel = model_url;
-  loader.load(cubeModel, (gltf) => {
-    cube = gltf.scene.clone();
-    cube.userData.draggable = false;
-    // for each make the title like O-Cube-1, O-Cube-2, O-Cube-3
-    cube.name = cubex.title + "-" + (allCubes.length + 1);
-    cube.userData.type = cubex.title;
-    cube.userData.position = cubePosition;
-    allCubes.push(cube);
-    window.cube = allCubes;
-    scene.add(cube);
-    for (let i = 0; i < allCubes.length; i++) {
-      if (allCubes.length > 0 && allCubes[i].userData.type === OCUBE || allCubes[i].userData.type === UCUBE) {
-        const lastCube = allCubes[allCubes.length - 1];
-        if (lastCube.position.x % 3 === 0) {
-          cube.position.x = lastCube.position.x - 2;
-          cube.position.z = lastCube.position.z - 1;
-        } else {
-          cube.position.x = lastCube.position.x + 1;
-          cube.position.z = lastCube.position.z;
-        }
-      } else {
-        cube.position.set(0, 0, 0);
-      }
-    }
-    // allCubes.push(cube);
+
+  const cubePromises = [];
+
+  const numCubesToAdd = cubex.id === WP_PRODUCTS[cubex.id].id ? WP_PRODUCTS[cubex.id].cubes : 1;
 
 
+  for (let i = 0; i < numCubesToAdd; i++) {
+    cubePromises.push(loadAndAddCube(loader, model_url, cubex, i));
+  }
+
+  Promise.all(cubePromises).then((cubes) => {
+    cubes.forEach((cube, index) => {
+      positionCube(cube, index, numCubesToAdd);
+    });
   });
+
+  // loader.load(cubeModel, (gltf) => {
+  //   cube = gltf.scene.clone();
+  //   cube.userData.draggable = false;
+  //   cube.name = cubex.title + "-" + (allCubes.length + 1);
+  //   cube.userData.type = cubex.title;
+  //   cube.userData.position = cubePosition;
+  //   allCubes.push(cube);
+  //   window.cube = allCubes;
+  //   scene.add(cube);
+  //   for (let i = 0; i < allCubes.length; i++) {
+  //     if (allCubes.length > 0 && allCubes[i].userData.type === OCUBE || allCubes[i].userData.type === UCUBE) {
+  //       const lastCube = allCubes[allCubes.length - 1];
+  //       if (lastCube.position.x % 3 === 0) {
+  //         cube.position.x = lastCube.position.x - 2;
+  //         cube.position.z = lastCube.position.z - 1;
+  //       } else {
+  //         cube.position.x = lastCube.position.x + 1;
+  //         cube.position.z = lastCube.position.z;
+  //       }
+  //     } else {
+  //       cube.position.set(0, 0, 0);
+  //     }
+  //   }
+  //   dracoLoader.dispose();
+  // });
+}
+
+function loadAndAddCube(loader, model_url, cubex, index) {
+  return new Promise((resolve) => {
+    loader.load(model_url, (gltf) => {
+      const cube = gltf.scene.clone();
+      cube.userData.draggable = false;
+      cube.name = cubex.title + "-" + (allCubes.length + 1);
+      cube.userData.type = cubex.title;
+      cube.userData.id = cubex.id;
+      cube.userData.position = cubePosition;
+      allCubes.push(cube);
+      jQuery("#cube_counters_" + cubex.id).html(allCubes.filter((cube) => cube.userData.id === cubex.id).length);
+      scene.add(cube);
+      resolve(cube);
+    });
+  });
+}
+
+function positionCube(cube, index, numCubesToAdd) {
+  const spacingX = -1;
+  const spacingZ = -1;
+  if (numCubesToAdd > 1) {
+    const row = Math.floor(index / 3);
+    const col = index % 3;
+    cube.position.x = col * spacingX;
+    cube.position.z = row * spacingZ;
+  } else {
+    index = allCubes.length - 1;
+    const row = Math.floor(index / 3);
+    const col = index % 3;
+    cube.position.x = col * spacingX;
+    cube.position.z = row * spacingZ;
+  }
 }
 
 
@@ -356,10 +413,10 @@ const getPrimaryCubes = () => {
 const getSecondaryCubes = () => {
   let { uCube, oCube } = getPrimaryCubes();
   let OCubeProducts = Object.values(WP_PRODUCTS).filter(
-    (product) => product.category == OCUBE && product.id !== oCube.id
+    (product) => product.category == "O-Cube" && product.id !== oCube.id
   );
   let UCubeProducts = Object.values(WP_PRODUCTS).filter(
-    (product) => product.category == UCUBE && product.id !== uCube.id
+    (product) => product.category == "U-Cube" && product.id !== uCube.id
   );
   return { OCubeProducts, UCubeProducts };
 };
@@ -466,7 +523,6 @@ function switchCubeModel(cubex) {
 
 
 function animate() {
-  jQuery("#cube_counters").html(allCubes.length)
   requestAnimationFrame(animate);
   renderer.render(scene, camera);
   controls.update();
@@ -608,11 +664,14 @@ function onModelUp(event) {
   event.preventDefault();
   controls.enabled = true;
   if (selected) {
-    if (selected.parent.userData.type === UCUBE || selected.parent.userData.type === OCUBE) {
-      selected.position.x = Math.round(selected.position.x);
-      selected.position.y = (Math.round(selected.position.y)) / 1.05;
-      selected.position.z = Math.round(selected.position.z);
-    }
+    selected.position.x = Math.round(selected.position.x);
+    selected.position.y = (Math.round(selected.position.y)) / 1.05;
+    selected.position.z = Math.round(selected.position.z);
+    // if (selected.parent.userData.type === UCUBE || selected.parent.userData.type === OCUBE) {
+    //   selected.position.x = Math.round(selected.position.x);
+    //   selected.position.y = (Math.round(selected.position.y)) / 1.05;
+    //   selected.position.z = Math.round(selected.position.z);
+    // }
   }
 
 
