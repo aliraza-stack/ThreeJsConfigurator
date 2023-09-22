@@ -193,6 +193,12 @@ function my_threejs_plugin_output()
       <div id="cubex" class="fs-6 position-absolute CubeSet" style="font-size: small"></div>
     </div>
     <div class="position-absolute d-flex align-items-center bottom-toolbar">
+      <div class="rotate-btn mx-4">
+        <button id="rotateSingleCube">
+          <img src="<?php echo plugin_dir_url(__FILE__); ?>img/rotate_cube.png" />
+          <span class="d-block">rotate cube</span>
+        </button>
+      </div>
       <div class="zoom-btn">
         <div class="d-flex justify-content-around">
           <button class="mx-2" id="zoomOut"><img src="<?php echo plugin_dir_url(__FILE__); ?>img/zoom-out.png" /></button>

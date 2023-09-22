@@ -328,7 +328,6 @@ function loadAndAddCube(loader, model_url, cubex, index) {
       cube.name = cubex.title + "-" + (allCubes.length + 1);
       cube.userData.type = cubex.title;
       cube.userData.id = cubex.id;
-      cube.userData.position = cubePosition;
       allCubes.push(cube);
       jQuery("#cube_counters_" + cubex.id).html(allCubes.filter((cube) => cube.userData.id === cubex.id).length);
       scene.add(cube);
@@ -384,19 +383,20 @@ function deleteAllCubes() {
     scene.remove(allCubes[i]);
   }
   allCubes = [];
+  // update the cube counter
+  jQuery(".cube_counters").html(0);
 }
 
 // DELETE SELECTED CUBE
 jQuery("#deleteCube").on("click", deleteSelectedCube);
 function deleteSelectedCube() {
-  console.log('selectedCube', selectedCube);
-  console.log('allCubes', allCubes);
   for (let i = 0; i < allCubes.length; i++) {
     if (allCubes[i].children[0] === selectedCube) {
       scene.remove(allCubes[i]);
       allCubes.splice(i, 1);
     }
   }
+  jQuery("#cube_counters_" + selectedCube.parent.userData.id).html(allCubes.filter((cube) => cube.userData.id === selectedCube.parent.userData.id).length);
 }
 
 
@@ -434,8 +434,8 @@ const attributesAndMenus = (cubex) => {
 
   let { OCubeProducts, UCubeProducts } = getSecondaryCubes();
 
-  let o_menu_items = OCubeProducts.map((product) => `<a class="dropdown-item" data-product-id="${product.id}" data-name=${product.name} data-info='${JSON.stringify(product)}'">${product.name}</a>`).join("");
-  let u_menu_items = UCubeProducts.map((product) => `<a class="dropdown-item" data-product-id="${product.id}" data-name=${product.name} data-info='${JSON.stringify(product)}'">${product.name}</a>`).join("");
+  let o_menu_items = OCubeProducts.map((product) => `<a class="dropdown-item" data-product-id="${product.id}" data-name=${product.name}>${product.name}</a>`).join("");
+  let u_menu_items = UCubeProducts.map((product) => `<a class="dropdown-item" data-product-id="${product.id}" data-name=${product.name}>${product.name}</a>`).join("");
 
   return { connectorAttribute, surfaceAttribute: osurfaceAttribute, seatcussionAttribute, connector_div, u_surface_div, o_surface_div, seatcussion_div, u_menu_items, o_menu_items };
 };
@@ -558,6 +558,14 @@ const getFov = () => {
   );
 };
 
+// rotate single cube 90 degree
+jQuery("#rotateSingleCube").on("click", () => {
+  if (selectedCube) {
+    selectedCube.rotation.z -= Math.PI / 2;
+    console.log('selectedCube', selectedCube);
+  }
+});
+
 // Function to update the camera FOV and input range value
 const updateCameraFOV = (updatedFov) => {
   camera.fov = updatedFov;
@@ -598,21 +606,6 @@ function onMouseDownRotation(event) {
   controls.enableRotate = true;
 }
 
-// window.addEventListener("mousemove", function (event) {
-//   event.preventDefault();
-//   mouseMove.x = (event.clientX / width) * 2 - 1;
-//   mouseMove.y = -(event.clientY / height) * 2 + 1;
-//   raycaster.setFromCamera(mouseMove, camera);
-//   intersects = raycaster.intersectObjects(allCubes, true);
-//   if (intersects.length > 0) {
-//     document.body.style.cursor = "pointer";
-//     outlinePass.selectedObjects = [intersects[0].object.parent];
-//   } else if (selected === null) {
-//     document.body.style.cursor = "auto";
-//     outlinePass.selectedObjects = [];
-//   }
-// });
-
 function onModelMove(event) {
   event.preventDefault();
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -633,7 +626,6 @@ function onModelMove(event) {
         selected.position
       );
     }
-    outlinePass.selectedObjects = [selected];
     document.body.style.cursor = "pointer";
   } else {
     selected = null;
@@ -653,7 +645,7 @@ function onModelDown(event) {
     }
     selectedCube = selected;
     selectedObjects.push(intersects[0].object.parent);
-    outlinePass.selectedObjects = [intersects[0].object.parent];
+    outlinePass.selectedObjects = [selected];
     document.body.style.cursor = "move";
   } else {
     outlinePass.selectedObjects = [];
