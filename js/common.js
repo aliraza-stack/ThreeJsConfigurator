@@ -11,7 +11,7 @@ CubeModel.init_cube = function (cubex) {
                 <div class="left-side">
                   <div class="title">${cubex.title} (<div id="cube_counters_${cubex.id}" class="cube_counters">0</div>)</div>
                   <div>
-                    <img id="Textures-${cubex.id}" src='${cubex.image}' alt="${cubex.title}" data-model-url="${cubex.model_url}" class='cubeImage'>
+                    <img id="Textures-${cubex.id}" src='${cubex.image}' alt="${cubex.title}" data-model-url="${cubex.model_url}" data-slug="" class='cubeImage'>
                   </div>
                 </div>
                 <div class="right-side">
@@ -67,7 +67,7 @@ CubeModel.init_dropdown = function (cubex) {
             <div class="left-side">
                 <div class="title">${product.name} (<div id="cube_counters_${product.id}" class="cube_counters">0</div>)</div>
                 <div><img id="Sub-Textures-${product.id}" data-product-id="${product.id}" src="${product.image}"
-                alt="${product.name}" data-model-url="${product.model_url}" class="cubeImage sub-cube-images"></div>
+                alt="${product.name}" data-model-url="${product.model_url}" data-quantity="" class="cubeImage sub-cube-images"></div>
             </div>
             <div class="right-side">
                 ${colorSelector}
@@ -142,6 +142,8 @@ function updateVariantImage(productId) {
   imageElement.src = matchedVariant ? matchedVariant.image : product.image;
 
   imageElement.dataset.modelUrl = matchedVariant ? matchedVariant.gltf_url : product.gltf_url;
+
+  imageElement.dataset.slug = matchedVariant ? matchedVariant.slug : product.slug;
 }
 
 
@@ -153,3 +155,6 @@ function removeDropdownItem(product) {
     dropdownItem.remove();
   }
 }
+
+
+

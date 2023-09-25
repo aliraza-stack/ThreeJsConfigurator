@@ -131,11 +131,28 @@ function get_product_data()
       'cubes' => get_post_meta($product->ID, 'no_of_cubes', 'true'),
       'connecters' => get_post_meta($product->ID, 'no_of_cusions', 'true'),
       'seatcussions' => get_post_meta($product->ID, 'no_of_seatcusions', 'true'),
+      'price' => $product_obj->get_price(),
     );
   }
 
   return $product_data;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 function my_threejs_plugin_output()
@@ -185,10 +202,15 @@ function my_threejs_plugin_output()
         <div class="dot"></div>
       </div>
     </div>
+    <div class="request-box position-absolute">
+      <div class="d-flex justify-content-end">
+        <div id="requestOffer" class="w-100 btn btn-success"></div>
+      </div>
+    </div>
     <div class="right-box position-absolute" id="divA">
       <div class="d-flex justify-content-around cube-tabs">
-        <button id="uCube" class="btn btn-link btn-switch-cube fs-10 text-decoration-none rounded-0">U-Cube</button>
-        <button id="oCube" class="btn btn-link btn-switch-cube fs-10 text-decoration-none rounded-0 active">O-Cube</button>
+        <button id="uCube" class="btn btn-link btn-switch-cube fs-10 text-decoration-none rounded-0"></button>
+        <button id="oCube" class="btn btn-link btn-switch-cube fs-10 text-decoration-none rounded-0 active"></button>
       </div>
       <div id="cubex" class="fs-6 position-absolute CubeSet" style="font-size: small"></div>
     </div>
@@ -218,6 +240,41 @@ function my_threejs_plugin_output()
         There is an error in loading this model, Please Refresh the page and add it again
       </div>
     </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="productDetailsModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Product Details</h5>
+            <div type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </div>
+          </div>
+          <div class="modal-body">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Cubes Quantity</th>
+                  <th>Connecters Quantity</th>
+                  <th>Seatcussions Quantity</th>
+                  <th>Price</th>
+                </tr>
+              </thead>
+              <tbody id="productDetailsTable">
+                <!-- Product details will be added here dynamically -->
+              </tbody>
+            </table>
+          </div>
+          <div class="modal-footer">
+            <div type="button" id="sendRequestButton" class="btn btn-primary">Send Request</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
 
     <div id="output" style="position: absolute; display: none;"></div>
     <script type="module" src="<?php echo plugin_dir_url(__FILE__); ?>libs/draco/gltf/draco_decoder.js"></script>

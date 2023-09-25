@@ -89,17 +89,6 @@ controls.enableZoom = false;
 const ambientLight = new THREE.AmbientLight("#ffe2a9", 2);
 scene.add(ambientLight);
 
-// // GUI FOLDER FOR AMBIENT LIGHT
-// var ambientLightFolder = GUI.addFolder("Ambient Light");
-// // ambientLight color
-// ambientLightFolder.addColor(ambientLight, "color");
-// // ambientLight intensity 0 to 10 at 0.01
-// ambientLightFolder.add(ambientLight, "intensity", 0, 10, 0.01);
-// // position of ambientLight
-// ambientLightFolder.add(ambientLight.position, "x", -10, 10, 0.01);
-// ambientLightFolder.add(ambientLight.position, "y", -10, 10, 0.01);
-// ambientLightFolder.add(ambientLight.position, "z", -10, 10, 0.01);
-// ambientLightFolder.open();
 
 // HEMISPHERE LIGHT
 window.hemisphereLight = new THREE.HemisphereLight();
@@ -108,101 +97,10 @@ window.hemisphereLight = new THREE.HemisphereLight();
 window.hemisphereLight.position.set(0, 20, 0);
 scene.add(window.hemisphereLight);
 
-// GUI FOLDER FOR HEMISPHERE LIGHT
-// const hamiSphareFolder = GUI.addFolder("Hemisphere Light");
-// // hamisphare colors ground and color
-// hamiSphareFolder.addColor(window.hemisphereLight, "groundColor");
-// hamiSphareFolder.addColor(window.hemisphereLight, "color");
-// // hamisphare intensity 0 to 10 at 0.01
-// hamiSphareFolder.add(window.hemisphereLight, "intensity", 0, 10, 0.01);
-// // position of hamisphare
-// hamiSphareFolder.add(window.hemisphereLight.position, "x", -10, 10, 0.01);
-// hamiSphareFolder.add(window.hemisphereLight.position, "y", -10, 10, 0.01);
-// hamiSphareFolder.add(window.hemisphereLight.position, "z", -10, 10, 0.01);
-// hamiSphareFolder.open();
-
-// var hamiSphareFolder = GUI.addFolder("Hemisphere Light");
-// // hamisphare colors ground and color
-// hamiSphareFolder.addColor(window.hemisphereLight, "groundColor");
-// hamiSphareFolder.addColor(window.hemisphereLight, "color");
-// // hamisphare intensity 0 to 10 at 0.01
-// hamiSphareFolder.add(window.hemisphereLight, "intensity", 0, 10, 0.01);
-// hamiSphareFolder.open();
-
-// const helper = new THREE.HemisphereLightHelper(hemisphereLight, 10);
-// scene.add(helper);
-
-
 // DIRECTIONAL LIGHT 1
 var directionalLight1 = new THREE.DirectionalLight("#ffe4b9", 3);
 directionalLight1.position.set(0.5, 0, 0.866);
 scene.add(directionalLight1);
-
-// // GUI FOLDER FOR DIRECTIONAL LIGHT 1
-// var directionalLight1Folder = GUI.addFolder("Directional Light 1");
-// // directionalLight1 color
-// directionalLight1Folder.addColor(directionalLight1, "color");
-// // directionalLight1 intensity 0 to 10 at 0.01
-// directionalLight1Folder.add(directionalLight1, "intensity", 0, 10, 0.01);
-// // position of directionalLight1
-// directionalLight1Folder.add(directionalLight1.position, "x", -10, 10, 0.01);
-// directionalLight1Folder.add(directionalLight1.position, "y", -10, 10, 0.01);
-// directionalLight1Folder.add(directionalLight1.position, "z", -10, 10, 0.01);
-// directionalLight1Folder.open();
-
-// var helper1 = new THREE.DirectionalLightHelper(directionalLight1, 5);
-// scene.add(helper1);
-// directionalLight1.target.position.set(0, 0, 0);
-// scene.add(directionalLight1.target);
-// // directionalLight.castShadow = true;
-// // directionalLight.shadow.mapSize.width = 2080;
-// // directionalLight.shadow.mapSize.height = 2080;
-// // directionalLight.shadow.camera.left = -70;
-// // directionalLight.shadow.camera.right = 70;
-// // directionalLight.shadow.camera.top = 70;
-// // directionalLight.shadow.camera.bottom = -70;
-
-// DIRECTIONAL LIGHT 2
-// var directionalLight2 = new THREE.DirectionalLight("#ffe4b9", 3);
-// directionalLight2.position.set(-0.5, 0, -0.866);
-// scene.add(directionalLight2);
-// var helper2 = new THREE.DirectionalLightHelper(directionalLight2, 5);
-// scene.add(helper2);
-// directionalLight2.target.position.set(0, 0, 0);
-// console.log(directionalLight2.position);
-// scene.add(directionalLight2.target);
-
-// // DIRECTIONAL LIGHT 3
-// var directionalLight3 = new THREE.DirectionalLight(0xffffff, 2);
-// var helper3 = new THREE.DirectionalLightHelper(directionalLight3, 5);
-// scene.add(helper3);
-// directionalLight3.position.set(30, 30, -30);
-// directionalLight3.target.position.set(0, 0, 0);
-// console.log(directionalLight3.position);
-// scene.add(directionalLight3);
-// scene.add(directionalLight3.target);
-
-// // DIRECTIONAL LIGHT 4
-// var directionalLight4 = new THREE.DirectionalLight(0xffffff, 2);
-// var helper4 = new THREE.DirectionalLightHelper(directionalLight4, 5);
-// scene.add(helper4);
-// directionalLight4.position.set(-30, 30, -30);
-// directionalLight4.target.position.set(0, 0, 0);
-// console.log(directionalLight4.position);
-// scene.add(directionalLight4);
-// scene.add(directionalLight4.target);
-
-// FLOOR PLANE
-// function createFloor() {
-//   let blockPlane = new THREE.Mesh(
-//     new THREE.BoxBufferGeometry(),
-//     new THREE.MeshPhongMaterial({ color: 0xdfdfdf, transparent: true, opacity: 0, })
-//   );
-//   blockPlane.position.set(pos.x, pos.y, pos.z);
-//   blockPlane.scale.set(scale.x, scale.y, scale.z);
-//   blockPlane.receiveShadow = true;
-//   scene.add(blockPlane);
-// }
 
 // MODEL OUTLINE PASS
 const composer = new EffectComposer(renderer);
@@ -220,17 +118,6 @@ outlinePass.resolutionY = 512 * 3;
 outlinePass.visibleEdgeColor = new THREE.Color(0, 65, 255); // Red: 0, Green: 65, Blue: 255
 outlinePass.hiddenEdgeColor = new THREE.Color(0, 26, 255);  // Red: 0, Green: 26, Blue: 255
 composer.addPass(outlinePass);
-// // GUI FOLDER FOR OUTLINE PASS
-// var outlinePassFolder = GUI.addFolder("Outline Pass");
-// outlinePassFolder.add(outlinePass, "edgeStrength", 0, 10, 0.1);
-// outlinePassFolder.add(outlinePass, "edgeGlow", 0, 10, 0.1);
-// outlinePassFolder.add(outlinePass, "edgeThickness", 0, 10, 0.1);
-// outlinePassFolder.add(outlinePass, "pulsePeriod", 0, 5, 0.1);
-// // color for visible and hidden edges of the outline
-// outlinePassFolder.addColor(outlinePass, "visibleEdgeColor");
-// outlinePassFolder.addColor(outlinePass, "hiddenEdgeColor");
-
-// outlinePassFolder.open()
 
 // FXAA SHADER PASS
 const effectFXAA = new ShaderPass(FXAAShader);
@@ -292,32 +179,6 @@ function cloneCube(cubex) {
       positionCube(cube, index, numCubesToAdd);
     });
   });
-
-  // loader.load(cubeModel, (gltf) => {
-  //   cube = gltf.scene.clone();
-  //   cube.userData.draggable = false;
-  //   cube.name = cubex.title + "-" + (allCubes.length + 1);
-  //   cube.userData.type = cubex.title;
-  //   cube.userData.position = cubePosition;
-  //   allCubes.push(cube);
-  //   window.cube = allCubes;
-  //   scene.add(cube);
-  //   for (let i = 0; i < allCubes.length; i++) {
-  //     if (allCubes.length > 0 && allCubes[i].userData.type === OCUBE || allCubes[i].userData.type === UCUBE) {
-  //       const lastCube = allCubes[allCubes.length - 1];
-  //       if (lastCube.position.x % 3 === 0) {
-  //         cube.position.x = lastCube.position.x - 2;
-  //         cube.position.z = lastCube.position.z - 1;
-  //       } else {
-  //         cube.position.x = lastCube.position.x + 1;
-  //         cube.position.z = lastCube.position.z;
-  //       }
-  //     } else {
-  //       cube.position.set(0, 0, 0);
-  //     }
-  //   }
-  //   dracoLoader.dispose();
-  // });
 }
 
 function loadAndAddCube(loader, model_url, cubex, index) {
@@ -328,7 +189,11 @@ function loadAndAddCube(loader, model_url, cubex, index) {
       cube.name = cubex.title + "-" + (allCubes.length + 1);
       cube.userData.type = cubex.title;
       cube.userData.id = cubex.id;
+      cube.userData.price = WP_PRODUCTS[cubex.id].price;
+      cube.userData.category = WP_PRODUCTS[cubex.id].category ?? "";
+      cube.userData.tag = cubex.tag;
       allCubes.push(cube);
+      console.log('allCubes', allCubes);
       jQuery("#cube_counters_" + cubex.id).html(allCubes.filter((cube) => cube.userData.id === cubex.id).length);
       scene.add(cube);
       resolve(cube);
@@ -450,6 +315,8 @@ const cubex = {
   u_surface_div: null,
   o_surface_div: null,
   seatcussion_div: null,
+  price: null,
+  tag: "",
 };
 
 jQuery(".btn-switch-cube").click(function () {
@@ -475,6 +342,8 @@ jQuery(".btn-switch-cube").click(function () {
   cubex.u_surface_div = u_surface_div;
   cubex.o_surface_div = o_surface_div;
   cubex.seatcussion_div = seatcussion_div;
+  cubex.price = WP_PRODUCTS[cubex.id].price;
+  cubex.tag = WP_PRODUCTS[cubex.id].tag;
 
   switchCubeModel(cubex);
 });
@@ -673,6 +542,154 @@ function onModelUp(event) {
   }
   document.body.style.cursor = "auto";
 }
+
+if (WP_ROLES === "um_business-customer") {
+  jQuery("#requestOffer").html("Request Offer");
+} else {
+  jQuery("#requestOffer").html("Add to Cart");
+}
+
+jQuery("#uCube").html(UCUBE);
+jQuery("#oCube").html(OCUBE);
+
+jQuery("#requestOffer").click(function () {
+  if (WP_ROLES === "um_business-customer") {
+    jQuery("#productDetailsTable").empty();
+    var productDetailsMap = {};
+    var totalPrice = 0;
+    var allQuantitiesZero = true;
+
+    allCubes.forEach((product) => {
+      const quantity = jQuery("#cube_counters_" + product.userData.id).html();
+      const addedProduct = WP_PRODUCTS[product.userData.id];
+      if (quantity > 0) {
+        allQuantitiesZero = false;
+        const productName = product.userData.type;
+        const price = product.userData.price ?? 0;
+        const seatcussionQuantity = addedProduct.seatcussions != 0 ? addedProduct.seatcussions : 0;
+        const connectorQuantity = addedProduct.connecters != 0 ? addedProduct.connecters : 0;
+        // totalPrice = quantity * parseInt(price);
+
+        if (addedProduct.tag === PTAG) {
+          totalPrice = price;
+        } else {
+          totalPrice = quantity * parseInt(price);
+        }
+        if (productDetailsMap[productName]) {
+          productDetailsMap[productName].quantity = parseInt(quantity);
+          productDetailsMap[productName].price = totalPrice;
+          productDetailsMap[productName].seatcussionQuantity = seatcussionQuantity ?? 0;
+          productDetailsMap[productName].connectorQuantity = connectorQuantity ?? 0;
+        } else {
+          productDetailsMap[productName] = {
+            name: productName,
+            quantity: parseInt(quantity),
+            price: totalPrice,
+            seatcussionQuantity: seatcussionQuantity ?? 0,
+            connectorQuantity: connectorQuantity ?? 0,
+          };
+        }
+      }
+    });
+    if (!allQuantitiesZero) {
+      for (const productName in productDetailsMap) {
+        const productDetails = productDetailsMap[productName];
+        jQuery("#productDetailsTable").append(`
+      <tr>
+        <td>${productDetails.name}</td>
+        <td>${productDetails.quantity}</td>
+        <td>${productDetails.connectorQuantity}</td>
+        <td>${productDetails.seatcussionQuantity}</td>
+        <td>${productDetails.price} CHF</td>
+      </tr>
+    `);
+      }
+
+      jQuery("#productDetailsModal").modal("show");
+    } else {
+      jQuery("#requestOffer").prop("disabled", true);
+    }
+  } else {
+    var productsToAddToCart = [];
+    var productDetailsMap = {};
+    var totalPrice = 0;
+    var allQuantitiesZero = true;
+
+    allCubes.forEach((product) => {
+      const quantity = jQuery("#cube_counters_" + product.userData.id).html();
+      const addedProduct = WP_PRODUCTS[product.userData.id];
+      if (quantity > 0) {
+        const productName = product.userData.type;
+        const price = product.userData.price ?? 0;
+        const variants = WP_PRODUCTS[product.userData.id].variants;
+        const varient_slug = jQuery("#cubex-variants-" + product.userData.id).find("img")[0].dataset.slug;
+        const varient = variants.filter((varient) => varient.slug === varient_slug)[0];
+        totalPrice = quantity * parseInt(price);
+        if (productDetailsMap[productName]) {
+          productDetailsMap[productName].id = product.userData.id;
+          productDetailsMap[productName].varientId = varient.id;
+          productDetailsMap[productName].quantity = parseInt(quantity);
+          productDetailsMap[productName].price = totalPrice;
+        } else {
+          productDetailsMap[productName] = {
+            id: product.userData.id,
+            name: productName,
+            quantity: parseInt(quantity),
+            varientId: varient.id,
+          };
+        }
+        productsToAddToCart.push({
+          ...productDetailsMap[productName],
+        });
+        console.log('productsToAddToCart', productsToAddToCart);
+      }
+    });
+    if (productsToAddToCart.length > 0) {
+      jQuery.ajax({
+        type: "POST",
+        dataType: "json",
+        url: "/wp-admin/admin-ajax.php",
+        data: {
+          action: 'configurator_add_to_cart',
+          products: productsToAddToCart,
+        },
+        success: function (response) {
+          if (response.success) {
+            window.location = '/cart/';
+            console.log('response', response);
+          } else {
+            console.error("Error adding products to the cart.");
+          }
+        },
+      });
+    } else {
+      jQuery("#requestOffer").prop("disabled", true);
+    }
+  }
+});
+
+jQuery("#sendRequestButton").click(function () {
+  jQuery.ajax({
+    url: '<?php echo admin_url("admin-ajax.php"); ?>',
+    type: "POST",
+    cache: false,
+    data: {
+      action: "send_request",
+      products: productDetailsMap,
+    },
+    success: function (response) {
+      alert("Request sent successfully.");
+      console.log(response);
+      jQuery("#productDetailsTable").empty();
+    },
+    error: function (error) {
+      alert("Error sending request.");
+      console.error(error);
+    },
+  });
+
+  jQuery("#productDetailsModal").modal("hide");
+});
 
 // createFloor();
 animate();

@@ -39,7 +39,7 @@ body {
 }
 
 .CubeSet{
-  width: 30% !important;
+  width: 24.5% !important;
 }
 
 .CubeSet .left-side {
@@ -167,12 +167,18 @@ body {
 .right-box {
   width: 30%;
   right: 0;
-  top: 20%;
+  top: 15%;
+}
+
+.request-box {
+  width: 29%;
+  right: 15px;
+  top: 9%;
 }
 .right-box .CubeSet {
   background: #fff;
   padding: 30px 40px;
-  aspect-ratio: 1/1;
+  height: 50%;
   overflow: auto;
 }
 .right-box .cube-tabs {
@@ -245,6 +251,10 @@ body {
   margin-top: 30px;
 }
 
+.modal-dialog {
+  max-width: 50% !important;
+}
+
 /********** Range Input Styles **********/
 /*Range Reset*/
 input[type="range"] {
@@ -314,7 +324,7 @@ input[type="range"]:focus::-moz-range-thumb {
 
 .bottom-toolbar {
   bottom: 30px;
-  left: 50%;
+  left: 45%;
   transform: translateX(-50%);
 }
 
@@ -356,7 +366,10 @@ input[type="range"]:focus::-moz-range-thumb {
     width: 35%;
   }
   .CubeSet {
-    width: 35% !important;
+    width: 27.2% !important;
+  }
+  .request-box {
+    width: 34%;
   }
 }
 
