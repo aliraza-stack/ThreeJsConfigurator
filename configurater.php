@@ -138,23 +138,6 @@ function get_product_data()
   return $product_data;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function my_threejs_plugin_output()
 {
   $products = get_product_data();
