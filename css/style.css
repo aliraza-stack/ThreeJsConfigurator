@@ -39,7 +39,7 @@ body {
 }
 
 .CubeSet{
-  width: 24.5% !important;
+  width: 29% !important;
 }
 
 .CubeSet .left-side {
@@ -254,6 +254,34 @@ body {
 .modal-dialog {
   max-width: 50% !important;
 }
+.addToCart {
+  background: none;
+  color: #fff;
+  width: 100%;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+.addToCart:hover {
+  background: #fff !important;
+  color: #E8E0C2 !important;
+  border-color: #fff;
+}
+
+.sendRequest {
+  background: transparent;
+  color: #000;
+  width: 50%;
+  border: 3px solid #000;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+.sendRequest:hover {
+  background: #988d39e3 !important;
+  color: #E8E0C2 !important;
+  border-color: #988d39e3;
+}
 
 /********** Range Input Styles **********/
 /*Range Reset*/
@@ -366,10 +394,10 @@ input[type="range"]:focus::-moz-range-thumb {
     width: 35%;
   }
   .CubeSet {
-    width: 27.2% !important;
+    width: 34% !important;
   }
   .request-box {
-    width: 34%;
+    width: 38.5%;
   }
 }
 
@@ -383,6 +411,9 @@ input[type="range"]:focus::-moz-range-thumb {
   .right-box .cube-tabs button {
     font-size: 20px;
     padding: 20px;
+  }
+  .request-box {
+    top: 9%;
   }
 }
 

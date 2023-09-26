@@ -32,6 +32,8 @@ var controlPressed = false;
 
 var intersects = [];
 var allCubes = [];
+var cubeCounter = 0;
+
 
 var cube;
 // var GUI = new dat.GUI();
@@ -191,7 +193,6 @@ function loadAndAddCube(loader, model_url, cubex, index) {
       cube.userData.id = cubex.id;
       cube.userData.price = WP_PRODUCTS[cubex.id].price;
       cube.userData.category = WP_PRODUCTS[cubex.id].category ?? "";
-      cube.userData.tag = cubex.tag;
       allCubes.push(cube);
       console.log('allCubes', allCubes);
       jQuery("#cube_counters_" + cubex.id).html(allCubes.filter((cube) => cube.userData.id === cubex.id).length);
@@ -543,8 +544,8 @@ function onModelUp(event) {
   document.body.style.cursor = "auto";
 }
 
-if (WP_ROLES === "um_business-customer") {
-  jQuery("#requestOffer").html("Request Offer");
+if (WP_CURRENT_USER_ROLE === BUSINESS_CUSTOMER) {
+  jQuery("#requestOffer").html("Request an Offer");
 } else {
   jQuery("#requestOffer").html("Add to Cart");
 }
@@ -552,41 +553,44 @@ if (WP_ROLES === "um_business-customer") {
 jQuery("#uCube").html(UCUBE);
 jQuery("#oCube").html(OCUBE);
 
+
 jQuery("#requestOffer").click(function () {
-  if (WP_ROLES === "um_business-customer") {
+  if (WP_CURRENT_USER_ROLE === BUSINESS_CUSTOMER) {
     jQuery("#productDetailsTable").empty();
+    var productsRequest = [];
     var productDetailsMap = {};
     var totalPrice = 0;
     var allQuantitiesZero = true;
 
     allCubes.forEach((product) => {
-      const quantity = jQuery("#cube_counters_" + product.userData.id).html();
+      const quantity = cubeCounter;
       const addedProduct = WP_PRODUCTS[product.userData.id];
       if (quantity > 0) {
         allQuantitiesZero = false;
         const productName = product.userData.type;
-        const price = product.userData.price ?? 0;
-        const seatcussionQuantity = addedProduct.seatcussions != 0 ? addedProduct.seatcussions : 0;
-        const connectorQuantity = addedProduct.connecters != 0 ? addedProduct.connecters : 0;
-        // totalPrice = quantity * parseInt(price);
+        var cubesQuantity = 0;
+        var connectorQuantity = 0;
+        var seatcussionQuantity = 0;
 
-        if (addedProduct.tag === PTAG) {
-          totalPrice = price;
+        if (product.userData.type === productName) {
+          cubesQuantity = addedProduct.cubes * quantity;
+          connectorQuantity = addedProduct.connecters * quantity;
+          seatcussionQuantity = addedProduct.seatcussions * quantity;
         } else {
-          totalPrice = quantity * parseInt(price);
+          cubesQuantity = productDetailsMap[productName].cubesQuantity;
+          connectorQuantity = productDetailsMap[productName].connectorQuantity;
+          seatcussionQuantity = productDetailsMap[productName].seatcussionQuantity;
         }
         if (productDetailsMap[productName]) {
-          productDetailsMap[productName].quantity = parseInt(quantity);
-          productDetailsMap[productName].price = totalPrice;
-          productDetailsMap[productName].seatcussionQuantity = seatcussionQuantity ?? 0;
-          productDetailsMap[productName].connectorQuantity = connectorQuantity ?? 0;
+          productDetailsMap[productName].cubesQuantity = parseInt(cubesQuantity);
+          productDetailsMap[productName].seatcussionQuantity = parseInt(seatcussionQuantity);
+          productDetailsMap[productName].connectorQuantity = parseInt(connectorQuantity);
         } else {
           productDetailsMap[productName] = {
             name: productName,
-            quantity: parseInt(quantity),
-            price: totalPrice,
-            seatcussionQuantity: seatcussionQuantity ?? 0,
-            connectorQuantity: connectorQuantity ?? 0,
+            cubesQuantity: parseInt(cubesQuantity),
+            seatcussionQuantity: parseInt(seatcussionQuantity),
+            connectorQuantity: parseInt(connectorQuantity),
           };
         }
       }
@@ -597,15 +601,40 @@ jQuery("#requestOffer").click(function () {
         jQuery("#productDetailsTable").append(`
       <tr>
         <td>${productDetails.name}</td>
-        <td>${productDetails.quantity}</td>
+        <td>${productDetails.cubesQuantity}</td>
         <td>${productDetails.connectorQuantity}</td>
         <td>${productDetails.seatcussionQuantity}</td>
-        <td>${productDetails.price} CHF</td>
       </tr>
     `);
+        productsRequest.push({ ...productDetails });
+
+        console.log('productsRequest', productsRequest);
       }
 
       jQuery("#productDetailsModal").modal("show");
+
+      jQuery("#sendRequestButton").click(function () {
+        jQuery.ajax({
+          url: '/wp-admin/admin-ajax.php',
+          type: "POST",
+          cache: false,
+          data: {
+            action: "send_request",
+            products: productsRequest,
+          },
+          success: function (response) {
+            alert("Request sent successfully.");
+            console.log('response', response);
+            jQuery("#productDetailsTable").empty();
+          },
+          error: function (error) {
+            alert("Error sending request.");
+            console.error(error);
+          },
+        });
+
+        jQuery("#productDetailsModal").modal("hide");
+      });
     } else {
       jQuery("#requestOffer").prop("disabled", true);
     }
@@ -617,20 +646,21 @@ jQuery("#requestOffer").click(function () {
 
     allCubes.forEach((product) => {
       const quantity = jQuery("#cube_counters_" + product.userData.id).html();
-      const addedProduct = WP_PRODUCTS[product.userData.id];
       if (quantity > 0) {
         const productName = product.userData.type;
         const price = product.userData.price ?? 0;
         const variants = WP_PRODUCTS[product.userData.id].variants;
-        const varient_slug = jQuery("#cubex-variants-" + product.userData.id).find("img")[0].dataset.slug;
+        const varient_slug = product.userData.slug;
         const varient = variants.filter((varient) => varient.slug === varient_slug)[0];
         totalPrice = quantity * parseInt(price);
-        if (productDetailsMap[productName]) {
-          productDetailsMap[productName].id = product.userData.id;
-          productDetailsMap[productName].varientId = varient.id;
+
+        // Check if a product with the same name and variant ID exists in productDetailsMap
+        if (productDetailsMap[productName] && productDetailsMap[productName].varientId === varient.id) {
+          // Update the existing product's quantity and price
           productDetailsMap[productName].quantity = parseInt(quantity);
           productDetailsMap[productName].price = totalPrice;
         } else {
+          // Add a new product entry
           productDetailsMap[productName] = {
             id: product.userData.id,
             name: productName,
@@ -638,9 +668,10 @@ jQuery("#requestOffer").click(function () {
             varientId: varient.id,
           };
         }
-        productsToAddToCart.push({
-          ...productDetailsMap[productName],
-        });
+
+        // Push the product details into productsToAddToCart
+        productsToAddToCart.push({ ...productDetailsMap[productName] });
+
         console.log('productsToAddToCart', productsToAddToCart);
       }
     });
@@ -668,28 +699,7 @@ jQuery("#requestOffer").click(function () {
   }
 });
 
-jQuery("#sendRequestButton").click(function () {
-  jQuery.ajax({
-    url: '<?php echo admin_url("admin-ajax.php"); ?>',
-    type: "POST",
-    cache: false,
-    data: {
-      action: "send_request",
-      products: productDetailsMap,
-    },
-    success: function (response) {
-      alert("Request sent successfully.");
-      console.log(response);
-      jQuery("#productDetailsTable").empty();
-    },
-    error: function (error) {
-      alert("Error sending request.");
-      console.error(error);
-    },
-  });
 
-  jQuery("#productDetailsModal").modal("hide");
-});
 
 // createFloor();
 animate();

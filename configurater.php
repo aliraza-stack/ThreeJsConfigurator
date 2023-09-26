@@ -138,11 +138,154 @@ function get_product_data()
   return $product_data;
 }
 
+// get the current user role
+function get_current_user_role()
+{
+  global $wp_roles;
+  $current_user = wp_get_current_user();
+  $roles = $current_user->roles;
+  $role = array_shift($roles);
+  return isset($wp_roles->role_names[$role]) ? $wp_roles->role_names[$role] : '';
+}
+
+
+// create a function in which 2 function call create post type if not exist and send mail to admin
+function handle_send_request()
+{
+  if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (post_type_exists('business_customer_orders')) {
+      $post_id = wp_insert_post(array(
+        'post_title' => $_POST['post_title'],
+        'post_content' => $_POST['post_content'],
+        'post_status' => 'publish',
+        'post_type' => 'business_customer_orders',
+      ));
+
+      if ($post_id) {
+        $current_user = wp_get_current_user();
+        $user_email = $current_user->user_email;
+        $to = get_option('admin_email');
+        $subject = 'New Business Customer Order';
+        $body = 'New Business Customer Order has been placed. Please check the admin panel.';
+        $body .= '<br><br><br>';
+        $body .= 'Name: ' . $_POST['post_title'];
+        $body .= '<br>';
+        $body .= 'Email: ' . $user_email;
+        $body .= '<br>';
+        $body .= 'Phone: ' . $_POST['post_content'];
+        $body .= '<br>';
+        $body .= 'Address: ' . $_POST['post_content'];
+        $body .= '<br>';
+        $body .= 'Product Details: ';
+        $body .= '<br>';
+        $body .= 'Name: ' . $_POST['post_content'];
+        $body .= '<br>';
+        $body .= 'Cubes Quantity: ' . $_POST['post_content'];
+        $body .= '<br>';
+        $body .= 'Connecters Quantity: ' . $_POST['post_content'];
+        $body .= '<br>';
+        $body .= 'Seatcussions Quantity: ' . $_POST['post_content'];
+        $body .= '<br>';
+
+        $headers = array('Content-Type: text/html; charset=UTF-8');
+        wp_mail($to, $subject, $body, $headers);
+      }
+    } else {
+      create_custom_post_type();
+      $post_id = wp_insert_post(array(
+        'post_title' => $_POST['post_title'],
+        'post_content' => $_POST['post_content'],
+        'post_status' => 'publish',
+        'post_type' => 'business_customer_orders',
+      ));
+
+      if ($post_id) {
+        $current_user = wp_get_current_user();
+        $user_email = $current_user->user_email;
+        $to = get_option('admin_email');
+        $subject = 'New Business Customer Order';
+        $body = 'New Business Customer Order has been placed. Please check the admin panel.';
+        $body .= '<br><br><br>';
+        $body .= 'Name: ' . $_POST['post_title'];
+        $body .= '<br>';
+        $body .= 'Email: ' . $user_email;
+        $body .= '<br>';
+        $body .= 'Phone: ' . $_POST['post_content'];
+        $body .= '<br>';
+        $body .= 'Address: ' . $_POST['post_content'];
+        $body .= '<br>';
+        $body .= 'Product Details: ';
+        $body .= '<br>';
+        $body .= 'Name: ' . $_POST['post_content'];
+        $body .= '<br>';
+        $body .= 'Cubes Quantity: ' . $_POST['post_content'];
+        $body .= '<br>';
+        $body .= 'Connecters Quantity: ' . $_POST['post_content'];
+        $body .= '<br>';
+        $body .= 'Seatcussions Quantity: ' . $_POST['post_content'];
+        $body .= '<br>';
+
+        $headers = array('Content-Type: text/html; charset=UTF-8');
+        wp_mail($to, $subject, $body, $headers);
+      }
+    }
+  }
+}
+add_action('wp_ajax_send_request', 'handle_send_request');
+add_action('wp_ajax_nopriv_send_request', 'handle_send_request');
+
+function create_custom_post_type()
+{
+  $labels = array(
+    'name' => 'Business Customer Orders',
+    'singular_name' => 'Business Customer Order',
+    'add_new' => 'Add New',
+    'add_new_item' => 'Add New Business Customer Order',
+    'edit_item' => 'Edit Business Customer Order',
+    'new_item' => 'New Business Customer Order',
+    'view_item' => 'View Business Customer Order',
+    'search_items' => 'Search Business Customer Orders',
+    'not_found' => 'No Business Customer Orders found',
+    'not_found_in_trash' => 'No Business Customer Orders found in Trash',
+    'parent_item_colon' => 'Parent Business Customer Order:',
+    'menu_name' => 'Business Customer Orders',
+  );
+
+  $args = array(
+    'labels' => $labels,
+    'hierarchical' => false,
+    'description' => 'Business Customer Orders',
+    'supports' => array('title', 'editor', 'excerpt', 'author', 'thumbnail', 'revisions', 'custom-fields',),
+    'taxonomies' => array('category', 'post_tag'),
+    'public' => true,
+    'show_ui' => true,
+    'show_in_menu' => true,
+    'menu_position' => 5,
+    'menu_icon' => 'dashicons-cart',
+    'show_in_nav_menus' => true,
+    'publicly_queryable' => true,
+    'exclude_from_search' => false,
+    'has_archive' => true,
+    'query_var' => true,
+    'can_export' => true,
+    'rewrite' => true,
+    'capability_type' => 'post',
+  );
+
+  register_post_type('business_customer_orders', $args);
+}
+add_action('init', 'create_custom_post_type');
+
+
+
+
+
 function my_threejs_plugin_output()
 {
   $products = get_product_data();
   $cubx_data = get_web_data();
   $wp_roles = get_wp_roles();
+  $current_user_role = get_current_user_role();
   ob_start();
 ?>
   <!DOCTYPE html>
@@ -186,8 +329,8 @@ function my_threejs_plugin_output()
       </div>
     </div>
     <div class="request-box position-absolute">
-      <div class="d-flex justify-content-end">
-        <div id="requestOffer" class="w-100 btn btn-success"></div>
+      <div class="d-flex justify-content-end border border-1 border-white">
+        <div id="requestOffer" class="w-100 btn btn-link fs-5 text-decoration-none addToCart rounded-0 fw-bold"></div>
       </div>
     </div>
     <div class="right-box position-absolute" id="divA">
@@ -229,20 +372,19 @@ function my_threejs_plugin_output()
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">Product Details</h5>
-            <div type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <h5 class="modal-title fw-bold" id="exampleModalLabel">Product Details</h5>
+            <div type="button" class="close fs-3 fw-bold" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </div>
           </div>
-          <div class="modal-body">
-            <table class="table">
+          <div class="modal-body p-0">
+            <table class="table m-0">
               <thead>
                 <tr>
                   <th>Name</th>
                   <th>Cubes Quantity</th>
                   <th>Connecters Quantity</th>
                   <th>Seatcussions Quantity</th>
-                  <th>Price</th>
                 </tr>
               </thead>
               <tbody id="productDetailsTable">
@@ -250,8 +392,8 @@ function my_threejs_plugin_output()
               </tbody>
             </table>
           </div>
-          <div class="modal-footer">
-            <div type="button" id="sendRequestButton" class="btn btn-primary">Send Request</div>
+          <div class="modal-footer justify-content-center">
+            <div type="button" id="sendRequestButton" class="btn btn-link rounded-0 sendRequest text-decoration-none shadow fw-bold">Send Request</div>
           </div>
         </div>
       </div>
@@ -269,10 +411,10 @@ function my_threejs_plugin_output()
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/GltfLoader_res_res.js"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/DracoLoader_res_res.js"></script>
     <script>
-      var WP_CART_DATA = {};
       var WP_PRODUCTS = <?= json_encode($products) ?>;
       var WP_CUBX_DATA = <?= json_encode($cubx_data) ?>;
       var WP_ROLES = <?= json_encode($wp_roles) ?>;
+      var WP_CURRENT_USER_ROLE = <?= json_encode($current_user_role) ?>;
       var WP_DRECO_PATH = '<?php echo plugin_dir_url(__FILE__); ?>libs/draco/gltf/';
     </script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/constants.js?v=<?= time() ?>"></script>
