@@ -32,7 +32,12 @@ var controlPressed = false;
 
 var intersects = [];
 var allCubes = [];
+var allSubCubes = [];
 var cubeCounter = 0;
+var clickedSlug = null;
+var totalQuenty = 0;
+var eachProductQuantity = {};
+var busniess_cart_info = {};
 
 
 var cube;
@@ -104,6 +109,16 @@ var directionalLight1 = new THREE.DirectionalLight("#ffe4b9", 3);
 directionalLight1.position.set(0.5, 0, 0.866);
 scene.add(directionalLight1);
 
+// var directionalLight2 = new THREE.DirectionalLight("#ffe4b9", 3);
+// directionalLight2.position.set(0.5, 0, 0.866);
+// const helper = new THREE.DirectionalLightHelper(directionalLight2, 5);
+// scene.add(helper);
+// scene.add(directionalLight2);
+// // GUI
+// GUI.add(directionalLight2.position, 'x', -10, 10);
+// GUI.add(directionalLight2.position, 'y', -10, 10);
+// GUI.add(directionalLight2.position, 'z', -10, 10);
+
 // MODEL OUTLINE PASS
 const composer = new EffectComposer(renderer);
 const renderPass = new RenderPass(scene, camera);
@@ -143,7 +158,6 @@ loading.onProgress = function (url, itemsLoaded, itemsTotal) {
   progressBar.style.width = `${(itemsLoaded / itemsTotal) * 100}%`;
 };
 loading.onError = function (url) {
-  console.log("There was an error loading model : ", url);
   hideAlert();
 };
 
@@ -169,8 +183,19 @@ function cloneCube(cubex) {
 
   const cubePromises = [];
 
-  const numCubesToAdd = cubex.id === WP_PRODUCTS[cubex.id].id ? WP_PRODUCTS[cubex.id].cubes : 1;
+  const numCubesToAdd = numbersOfCubes(cubex.id);
 
+  function numbersOfCubes(id) {
+    if (WP_PRODUCTS[id].cubes !== "") {
+      return parseInt(WP_PRODUCTS[id].cubes);
+    } else if (WP_PRODUCTS[id].connecters !== "") {
+      return parseInt(WP_PRODUCTS[id].connecters);
+    } else if (WP_PRODUCTS[id].seatcussions !== "") {
+      return parseInt(WP_PRODUCTS[id].seatcussions);
+    } else {
+      return 0;
+    }
+  }
 
   for (let i = 0; i < numCubesToAdd; i++) {
     cubePromises.push(loadAndAddCube(loader, model_url, cubex, i));
@@ -187,14 +212,19 @@ function loadAndAddCube(loader, model_url, cubex, index) {
   return new Promise((resolve) => {
     loader.load(model_url, (gltf) => {
       const cube = gltf.scene.clone();
+      const products = WP_PRODUCTS[cubex.id];
       cube.userData.draggable = false;
       cube.name = cubex.title + "-" + (allCubes.length + 1);
       cube.userData.type = cubex.title;
       cube.userData.id = cubex.id;
-      cube.userData.price = WP_PRODUCTS[cubex.id].price;
-      cube.userData.category = WP_PRODUCTS[cubex.id].category ?? "";
+      cube.userData.price = products.price;
+      cube.userData.category = products.category ?? "";
+      cube.userData.slug = clickedSlug;
+      cube.userData.cubesQuantity = products.cubes === "" ? 0 : parseInt(products.cubes);
+      cube.userData.connectorQuantity = products.connecters === "" ? 0 : parseInt(products.connecters);
+      cube.userData.seatcussionQuantity = products.seatcussions === "" ? 0 : parseInt(products.seatcussions);
       allCubes.push(cube);
-      console.log('allCubes', allCubes);
+      allData("allCubes", allCubes);
       jQuery("#cube_counters_" + cubex.id).html(allCubes.filter((cube) => cube.userData.id === cubex.id).length);
       scene.add(cube);
       resolve(cube);
@@ -249,6 +279,7 @@ function deleteAllCubes() {
     scene.remove(allCubes[i]);
   }
   allCubes = [];
+  busniess_cart_info = {};
   // update the cube counter
   jQuery(".cube_counters").html(0);
 }
@@ -260,6 +291,18 @@ function deleteSelectedCube() {
     if (allCubes[i].children[0] === selectedCube) {
       scene.remove(allCubes[i]);
       allCubes.splice(i, 1);
+      const slug = busniess_cart_info[selectedCube.parent.userData.slug];
+      console.log(selectedCube);
+      console.log(slug);
+      console.log(busniess_cart_info);
+      if (slug.cussionQuantity <= selectedCube.userData.cubesQuantity) {
+        var seatcussionQuantity = slug.seatcussionQuantity - 1;
+      }
+      if (slug) {
+        slug.cubesQuantity = slug.cubesQuantity - 1;
+        slug.connectorQuantity = slug.connectorQuantity - 1;
+        slug.cussionQuantity = seatcussionQuantity;
+      }
     }
   }
   jQuery("#cube_counters_" + selectedCube.parent.userData.id).html(allCubes.filter((cube) => cube.userData.id === selectedCube.parent.userData.id).length);
@@ -279,13 +322,14 @@ const getPrimaryCubes = () => {
 const getSecondaryCubes = () => {
   let { uCube, oCube } = getPrimaryCubes();
   let OCubeProducts = Object.values(WP_PRODUCTS).filter(
-    (product) => product.category == "O-Cube" && product.id !== oCube.id
+    (product) => product.category == "O-Cube" && product.id !== oCube.id && product.name !== INLAY
   );
   let UCubeProducts = Object.values(WP_PRODUCTS).filter(
-    (product) => product.category == "U-Cube" && product.id !== uCube.id
+    (product) => product.category == "U-Cube" && product.id !== uCube.id && product.name !== INLAY
   );
   return { OCubeProducts, UCubeProducts };
 };
+
 
 const attributesAndMenus = (cubex) => {
   let connectorAttribute = WP_PRODUCTS[cubex.id].attributes["pa_connecter-single"] ?? [];
@@ -357,8 +401,11 @@ function switchCubeModel(cubex) {
 
   CubeModel.init(cubex);
 
-  jQuery("#Textures-" + cubex.id).click(function () {
+  jQuery("#Textures-" + cubex.id).click(function (e) {
     cloneCube(cubex);
+    allData("cubex", cubex);
+    clickedSlug = e.target.dataset.slug;
+    allData("clickedSlug", clickedSlug);
   });
 
   let { OCubeProducts, UCubeProducts } = getSecondaryCubes();
@@ -378,19 +425,23 @@ function switchCubeModel(cubex) {
     };
   });
 
-  const allSubCubes = [...oCubeModel, ...uCubeModel];
+  allSubCubes = [...oCubeModel, ...uCubeModel];
+  allData("allSubCubes", allSubCubes);
 
-  jQuery(document).on('click', ".sub-cube-images", function (e) {
-    let productId = jQuery(e.target).data("product-id");
-    allSubCubes.forEach((subProduct) => {
-      if (subProduct.id === productId) {
-        cloneCube(subProduct);
-      }
-    })
-  });
   deleteAllCubes();
 }
 
+jQuery(document).on('click', ".sub-cube-images", function (e) {
+  const productId = jQuery(e.target).data("product-id");
+  const slug = jQuery(e.target).data("slug");
+  allSubCubes.forEach((subProduct) => {
+    if (subProduct.id === productId) {
+      clickedSlug = slug;
+      allData("sub-cube-slug", clickedSlug);
+      cloneCube(subProduct);
+    }
+  })
+});
 
 function animate() {
   requestAnimationFrame(animate);
@@ -398,6 +449,10 @@ function animate() {
   controls.update();
   composer.render();
   resizeWindow();
+}
+
+function allData(key, value) {
+  ALL_DATA[key] = value;
 }
 
 function resizeWindow() {
@@ -431,8 +486,7 @@ const getFov = () => {
 // rotate single cube 90 degree
 jQuery("#rotateSingleCube").on("click", () => {
   if (selectedCube) {
-    selectedCube.rotation.z -= Math.PI / 2;
-    console.log('selectedCube', selectedCube);
+    selectedCube.rotation.y -= Math.PI / 2;
   }
 });
 
@@ -460,7 +514,6 @@ jQuery("#zoomOut").on("click", () => {
 // Function to handle range input change
 jQuery('input[type="range"]').on("input", (e) => {
   const rangeFov = parseInt(e.target.value);
-  console.log('rangeFov range', rangeFov)
   updateCameraFOV(rangeFov);
 });
 
@@ -553,126 +606,134 @@ if (WP_CURRENT_USER_ROLE === BUSINESS_CUSTOMER) {
 jQuery("#uCube").html(UCUBE);
 jQuery("#oCube").html(OCUBE);
 
+document.body.addEventListener('click', function (event) {
+  if (event.target.tagName === 'IMG' && event.target.hasAttribute('data-product-id')) {
+    const productId = event.target.getAttribute('data-product-id');
+    const currentCount = parseInt(event.target.getAttribute('data-count')) || 0;
+    event.target.setAttribute('data-count', currentCount + 1);
+    let productQuantity = parseInt(event.target.getAttribute('data-count'));
+    eachProductQuantity[productId] = productQuantity;
+    totalQuenty = totalQuenty + 1;
+  }
+});
+
+
 
 jQuery("#requestOffer").click(function () {
   if (WP_CURRENT_USER_ROLE === BUSINESS_CUSTOMER) {
     jQuery("#productDetailsTable").empty();
-    var productsRequest = [];
     var productDetailsMap = {};
-    var totalPrice = 0;
-    var allQuantitiesZero = true;
 
-    allCubes.forEach((product) => {
-      const quantity = cubeCounter;
-      const addedProduct = WP_PRODUCTS[product.userData.id];
-      if (quantity > 0) {
-        allQuantitiesZero = false;
-        const productName = product.userData.type;
-        var cubesQuantity = 0;
-        var connectorQuantity = 0;
-        var seatcussionQuantity = 0;
+    let productRow = '';
 
-        if (product.userData.type === productName) {
-          cubesQuantity = addedProduct.cubes * quantity;
-          connectorQuantity = addedProduct.connecters * quantity;
-          seatcussionQuantity = addedProduct.seatcussions * quantity;
-        } else {
-          cubesQuantity = productDetailsMap[productName].cubesQuantity;
-          connectorQuantity = productDetailsMap[productName].connectorQuantity;
-          seatcussionQuantity = productDetailsMap[productName].seatcussionQuantity;
-        }
-        if (productDetailsMap[productName]) {
-          productDetailsMap[productName].cubesQuantity = parseInt(cubesQuantity);
-          productDetailsMap[productName].seatcussionQuantity = parseInt(seatcussionQuantity);
-          productDetailsMap[productName].connectorQuantity = parseInt(connectorQuantity);
-        } else {
-          productDetailsMap[productName] = {
-            name: productName,
-            cubesQuantity: parseInt(cubesQuantity),
-            seatcussionQuantity: parseInt(seatcussionQuantity),
-            connectorQuantity: parseInt(connectorQuantity),
-          };
-        }
+    allCubes.forEach((prd) => {
+      let product = prd.userData;
+      if (busniess_cart_info[product.slug] == undefined) {
+        busniess_cart_info[product.slug] = product
+      } else {
+        const info = busniess_cart_info[product.slug];
+        info.id = product.id;
+        info.name = product.type;
+        info.quantity = (info.cubesQuantity + product.cubesQuantity) / product.cubesQuantity;
+        info.cubesQuantity = eachProductQuantity[product.id] * product.cubesQuantity;
+        info.connectorQuantity = eachProductQuantity[product.id] * product.connectorQuantity;
+        info.cussionQuantity = eachProductQuantity[product.id] * product.seatcussionQuantity;
+
       }
     });
-    if (!allQuantitiesZero) {
-      for (const productName in productDetailsMap) {
-        const productDetails = productDetailsMap[productName];
-        jQuery("#productDetailsTable").append(`
-      <tr>
-        <td>${productDetails.name}</td>
-        <td>${productDetails.cubesQuantity}</td>
-        <td>${productDetails.connectorQuantity}</td>
-        <td>${productDetails.seatcussionQuantity}</td>
-      </tr>
-    `);
-        productsRequest.push({ ...productDetails });
-
-        console.log('productsRequest', productsRequest);
-      }
+    for (const key in busniess_cart_info) {
+      let product = busniess_cart_info[key];
+      productRow = `${productRow}<tr data-slug="${product.slug}">
+            <td>${product.type}</td>
+            <td class="productCubesQuantity">${product.cubesQuantity ?? 0}</td>
+            <td class="productCubesQuantity">${product.connectorQuantity ?? 0}</td>
+            <td class="productCubesQuantity">${product.cussionQuantity ?? 0}</td>
+            <td class="productVarient">${product.slug}</td>
+          </tr>`;
+    }
+    if (productRow != '') {
+      jQuery("#productDetailsTable").html(productRow);
 
       jQuery("#productDetailsModal").modal("show");
 
-      jQuery("#sendRequestButton").click(function () {
+      // Define a flag to track if a request is in progress
+      let isRequestInProgress = false;
+      // Define a function to handle the click event
+      function sendRequest() {
+        // Check if a request is already in progress
+        if (isRequestInProgress) {
+          return; // Do nothing if a request is already ongoing
+        }
+
+        // Set the flag to indicate that a request is now in progress
+        isRequestInProgress = true;
+
         jQuery.ajax({
           url: '/wp-admin/admin-ajax.php',
           type: "POST",
           cache: false,
           data: {
             action: "send_request",
-            products: productsRequest,
+            products: busniess_cart_info,
           },
           success: function (response) {
+            jQuery("#productDetailsModal").modal("hide");
             alert("Request sent successfully.");
-            console.log('response', response);
-            jQuery("#productDetailsTable").empty();
           },
           error: function (error) {
             alert("Error sending request.");
-            console.error(error);
           },
-        });
+          complete: function () {
+            // Reset the flag when the request is complete, whether successful or not
+            isRequestInProgress = false;
 
-        jQuery("#productDetailsModal").modal("hide");
-      });
+            // Clear the list and hide the modal
+            jQuery("#productDetailsTable").empty();
+
+            // Unbind the click event after the first click
+            jQuery("#sendRequestButton").off("click", sendRequest);
+          }
+        });
+      }
+
+      // Attach the click event handler
+      jQuery("#sendRequestButton").on("click", sendRequest);
+
     } else {
       jQuery("#requestOffer").prop("disabled", true);
     }
   } else {
     var productsToAddToCart = [];
     var productDetailsMap = {};
-    var totalPrice = 0;
-    var allQuantitiesZero = true;
 
     allCubes.forEach((product) => {
-      const quantity = jQuery("#cube_counters_" + product.userData.id).html();
+      const quantity = totalQuenty;
       if (quantity > 0) {
         const productName = product.userData.type;
         const price = product.userData.price ?? 0;
         const variants = WP_PRODUCTS[product.userData.id].variants;
         const varient_slug = product.userData.slug;
         const varient = variants.filter((varient) => varient.slug === varient_slug)[0];
-        totalPrice = quantity * parseInt(price);
 
         // Check if a product with the same name and variant ID exists in productDetailsMap
         if (productDetailsMap[productName] && productDetailsMap[productName].varientId === varient.id) {
-          // Update the existing product's quantity and price
-          productDetailsMap[productName].quantity = parseInt(quantity);
-          productDetailsMap[productName].price = totalPrice;
+          productDetailsMap[productName].quantity = eachProductQuantity[product.userData.id];
+          productDetailsMap[productName].varientId = varient.id;
+          productDetailsMap[productName].name = productName;
+          productDetailsMap[productName].id = product.userData.id;
         } else {
-          // Add a new product entry
           productDetailsMap[productName] = {
             id: product.userData.id,
             name: productName,
-            quantity: parseInt(quantity),
+            quantity: eachProductQuantity[product.userData.id],
             varientId: varient.id,
           };
         }
 
         // Push the product details into productsToAddToCart
         productsToAddToCart.push({ ...productDetailsMap[productName] });
+        window.productsToAddToCart = productsToAddToCart;
 
-        console.log('productsToAddToCart', productsToAddToCart);
       }
     });
     if (productsToAddToCart.length > 0) {
@@ -687,9 +748,8 @@ jQuery("#requestOffer").click(function () {
         success: function (response) {
           if (response.success) {
             window.location = '/cart/';
-            console.log('response', response);
           } else {
-            console.error("Error adding products to the cart.");
+            alert("Error adding products to the cart.");
           }
         },
       });

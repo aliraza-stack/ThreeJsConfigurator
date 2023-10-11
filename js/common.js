@@ -11,7 +11,7 @@ CubeModel.init_cube = function (cubex) {
                 <div class="left-side">
                   <div class="title">${cubex.title} (<div id="cube_counters_${cubex.id}" class="cube_counters">0</div>)</div>
                   <div>
-                    <img id="Textures-${cubex.id}" src='${cubex.image}' alt="${cubex.title}" data-model-url="${cubex.model_url}" data-slug="" class='cubeImage quantity-cubes'>
+                    <img id="Textures-${cubex.id}" src='${cubex.image}' alt="${cubex.title}" data-model-url="${cubex.model_url}" data-product-id="${cubex.id}" data-slug="" class='cubeImage'>
                   </div>
                 </div>
                 <div class="right-side">
@@ -67,7 +67,7 @@ CubeModel.init_dropdown = function (cubex) {
             <div class="left-side">
                 <div class="title">${product.name} (<div id="cube_counters_${product.id}" class="cube_counters">0</div>)</div>
                 <div><img id="Sub-Textures-${product.id}" data-product-id="${product.id}" src="${product.image}"
-                alt="${product.name}" data-model-url="${product.model_url}" data-slug="" class="cubeImage sub-cube-images quantity-cubes"></div>
+                alt="${product.name}" data-model-url="${product.model_url}" data-slug="" class="sub-cube-images cubeImage"></div>
             </div>
             <div class="right-side">
                 ${colorSelector}
@@ -155,6 +155,3 @@ function removeDropdownItem(product) {
     dropdownItem.remove();
   }
 }
-
-
-

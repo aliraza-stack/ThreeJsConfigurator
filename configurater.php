@@ -149,135 +149,6 @@ function get_current_user_role()
 }
 
 
-// create a function in which 2 function call create post type if not exist and send mail to admin
-function handle_send_request()
-{
-  if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (post_type_exists('business_customer_orders')) {
-      $post_id = wp_insert_post(array(
-        'post_title' => $_POST['post_title'],
-        'post_content' => $_POST['post_content'],
-        'post_status' => 'publish',
-        'post_type' => 'business_customer_orders',
-      ));
-
-      if ($post_id) {
-        $current_user = wp_get_current_user();
-        $user_email = $current_user->user_email;
-        $to = get_option('admin_email');
-        $subject = 'New Business Customer Order';
-        $body = 'New Business Customer Order has been placed. Please check the admin panel.';
-        $body .= '<br><br><br>';
-        $body .= 'Name: ' . $_POST['post_title'];
-        $body .= '<br>';
-        $body .= 'Email: ' . $user_email;
-        $body .= '<br>';
-        $body .= 'Phone: ' . $_POST['post_content'];
-        $body .= '<br>';
-        $body .= 'Address: ' . $_POST['post_content'];
-        $body .= '<br>';
-        $body .= 'Product Details: ';
-        $body .= '<br>';
-        $body .= 'Name: ' . $_POST['post_content'];
-        $body .= '<br>';
-        $body .= 'Cubes Quantity: ' . $_POST['post_content'];
-        $body .= '<br>';
-        $body .= 'Connecters Quantity: ' . $_POST['post_content'];
-        $body .= '<br>';
-        $body .= 'Seatcussions Quantity: ' . $_POST['post_content'];
-        $body .= '<br>';
-
-        $headers = array('Content-Type: text/html; charset=UTF-8');
-        wp_mail($to, $subject, $body, $headers);
-      }
-    } else {
-      create_custom_post_type();
-      $post_id = wp_insert_post(array(
-        'post_title' => $_POST['post_title'],
-        'post_content' => $_POST['post_content'],
-        'post_status' => 'publish',
-        'post_type' => 'business_customer_orders',
-      ));
-
-      if ($post_id) {
-        $current_user = wp_get_current_user();
-        $user_email = $current_user->user_email;
-        $to = get_option('admin_email');
-        $subject = 'New Business Customer Order';
-        $body = 'New Business Customer Order has been placed. Please check the admin panel.';
-        $body .= '<br><br><br>';
-        $body .= 'Name: ' . $_POST['post_title'];
-        $body .= '<br>';
-        $body .= 'Email: ' . $user_email;
-        $body .= '<br>';
-        $body .= 'Phone: ' . $_POST['post_content'];
-        $body .= '<br>';
-        $body .= 'Address: ' . $_POST['post_content'];
-        $body .= '<br>';
-        $body .= 'Product Details: ';
-        $body .= '<br>';
-        $body .= 'Name: ' . $_POST['post_content'];
-        $body .= '<br>';
-        $body .= 'Cubes Quantity: ' . $_POST['post_content'];
-        $body .= '<br>';
-        $body .= 'Connecters Quantity: ' . $_POST['post_content'];
-        $body .= '<br>';
-        $body .= 'Seatcussions Quantity: ' . $_POST['post_content'];
-        $body .= '<br>';
-
-        $headers = array('Content-Type: text/html; charset=UTF-8');
-        wp_mail($to, $subject, $body, $headers);
-      }
-    }
-  }
-}
-add_action('wp_ajax_send_request', 'handle_send_request');
-add_action('wp_ajax_nopriv_send_request', 'handle_send_request');
-
-function create_custom_post_type()
-{
-  $labels = array(
-    'name' => 'Business Customer Orders',
-    'singular_name' => 'Business Customer Order',
-    'add_new' => 'Add New',
-    'add_new_item' => 'Add New Business Customer Order',
-    'edit_item' => 'Edit Business Customer Order',
-    'new_item' => 'New Business Customer Order',
-    'view_item' => 'View Business Customer Order',
-    'search_items' => 'Search Business Customer Orders',
-    'not_found' => 'No Business Customer Orders found',
-    'not_found_in_trash' => 'No Business Customer Orders found in Trash',
-    'parent_item_colon' => 'Parent Business Customer Order:',
-    'menu_name' => 'Business Customer Orders',
-  );
-
-  $args = array(
-    'labels' => $labels,
-    'hierarchical' => false,
-    'description' => 'Business Customer Orders',
-    'supports' => array('title', 'editor', 'excerpt', 'author', 'thumbnail', 'revisions', 'custom-fields',),
-    'taxonomies' => array('category', 'post_tag'),
-    'public' => true,
-    'show_ui' => true,
-    'show_in_menu' => true,
-    'menu_position' => 5,
-    'menu_icon' => 'dashicons-cart',
-    'show_in_nav_menus' => true,
-    'publicly_queryable' => true,
-    'exclude_from_search' => false,
-    'has_archive' => true,
-    'query_var' => true,
-    'can_export' => true,
-    'rewrite' => true,
-    'capability_type' => 'post',
-  );
-
-  register_post_type('business_customer_orders', $args);
-}
-add_action('init', 'create_custom_post_type');
-
-
-
 
 
 function my_threejs_plugin_output()
@@ -382,9 +253,10 @@ function my_threejs_plugin_output()
               <thead>
                 <tr>
                   <th>Name</th>
-                  <th>Cubes Quantity</th>
-                  <th>Connecters Quantity</th>
-                  <th>Seatcussions Quantity</th>
+                  <th>Cube Quantity</th>
+                  <th>Connector Quantity</th>
+                  <th>Cussion Quantity</th>
+                  <th>Varient</th>
                 </tr>
               </thead>
               <tbody id="productDetailsTable">
@@ -416,6 +288,7 @@ function my_threejs_plugin_output()
       var WP_ROLES = <?= json_encode($wp_roles) ?>;
       var WP_CURRENT_USER_ROLE = <?= json_encode($current_user_role) ?>;
       var WP_DRECO_PATH = '<?php echo plugin_dir_url(__FILE__); ?>libs/draco/gltf/';
+      var ALL_DATA = {};
     </script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/constants.js?v=<?= time() ?>"></script>
     <script type="module" src="<?php echo plugin_dir_url(__FILE__); ?>js/configurater.js?v=<?= time() ?>"></script>
