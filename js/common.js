@@ -9,11 +9,20 @@ CubeModel.init_cube = function (cubex) {
         <div>
             <div id="cubex-variants-${cubex.id}" class="d-flex">
                 <div class="left-side">
-                  <div class="title">${cubex.title} (<div id="cube_counters_${cubex.id}" class="cube_counters">0</div>)</div>
-                  <div>
-                    <img id="Textures-${cubex.id}" src='${cubex.image}' alt="${cubex.title}" data-model-url="${cubex.model_url}" data-product-id="${cubex.id}" data-slug="" class='cubeImage'>
+                    <div class="title">${cubex.title} <div id="cube_counters_${cubex.id}" class="cube_counters">0</div></div>
+                    <span class="cubeX__tooltiptext">Click to Add</span>
+                    <div class="">
+                        <div class="image-container">
+                            <img id="Textures-${cubex.id}" src='${cubex.image}' alt="${cubex.title}" data-model-url="${cubex.model_url}" data-product-id="${cubex.id}" data-slug="" class='cubeImage'>
+                            <div class="loading-spinner">
+                                <i class="fa fa-spinner fs-1 text-dark animatio_spin" aria-hidden="true"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cubeX__tooltip">
+                      <img src="http://cubx-store.cybernest.co/wp-content/uploads/2023/10/add-to-cart.png" />
+                      </div>
                   </div>
-                </div>
                 <div class="right-side">
                   <div class="selectors">
                       <div>Connectors</div>
@@ -64,10 +73,20 @@ CubeModel.init_dropdown = function (cubex) {
 
     const otherCubes = document.getElementById("other-cubes");
     otherCubes.innerHTML += `<div id="cubex-variants-${product.id}" class="d-flex mt-5">
-            <div class="left-side">
-                <div class="title">${product.name} (<div id="cube_counters_${product.id}" class="cube_counters">0</div>)</div>
-                <div><img id="Sub-Textures-${product.id}" data-product-id="${product.id}" src="${product.image}"
-                alt="${product.name}" data-model-url="${product.model_url}" data-slug="" class="sub-cube-images cubeImage"></div>
+            <div class="left-side sub__tooltip">
+                <div class="title">${product.name} <div id="cube_counters_${product.id}" class="cube_counters">0</div></div>
+                <span class="cubeX__tooltiptext">Click to Add</span>
+                  <div class="">
+                    <div class="image-container">
+                        <img id="Sub-Textures-${product.id}" data-product-id="${product.id}" src="${product.image}" alt="${product.name}" data-model-url="${product.model_url}" data-slug="" class="sub-cube-images cubeImage">
+                        <div class="loading-spinner">
+                            <i class="fa fa-spinner fs-1 text-dark animatio_spin" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                    <div class="cubeX__tooltip">
+                      <img src="http://cubx-store.cybernest.co/wp-content/uploads/2023/10/add-to-cart.png" />
+                      </div>
+                  </div>
             </div>
             <div class="right-side">
                 ${colorSelector}
@@ -142,8 +161,38 @@ function updateVariantImage(productId) {
   imageElement.src = matchedVariant ? matchedVariant.image : product.image;
 
   imageElement.dataset.modelUrl = matchedVariant ? matchedVariant.gltf_url : product.gltf_url;
+  imageElement.dataset.modelUrl2 = matchedVariant ? matchedVariant.gltf_url_2 : product.gltf_url_2;
 
   imageElement.dataset.slug = matchedVariant ? matchedVariant.slug : product.slug;
+
+  // Get the image and loading spinner elements
+  const image = document.getElementById(`Textures-${productId}`);
+  const image2 = document.getElementById(`Sub-Textures-${productId}`);
+  var loadingSpinner;
+  if (image) {
+    loadingSpinner = image.nextElementSibling;
+  } else {
+    loadingSpinner = image2.nextElementSibling;
+  }
+
+  if (image) {
+    image.addEventListener('load', () => {
+      loadingSpinner.style.display = 'none';
+    });
+  } else if (image2) {
+    image2.addEventListener('load', () => {
+      loadingSpinner.style.display = 'none';
+    });
+  }
+
+  loadingSpinner.style.display = 'block';
+
+  if (image) {
+    image.src = imageElement.src;
+  } else {
+    image2.src = imageElement.src;
+  }
+
 }
 
 
@@ -155,3 +204,5 @@ function removeDropdownItem(product) {
     dropdownItem.remove();
   }
 }
+
+

@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Plugin Name: CubX Configurater
+ * Plugin Name: Configurator using ThreeJS
  * Plugin URI: cybernest.com
  * Description: Configurator using ThreeJS.
  * Version: 1.0.0
  * Author: Ali Raza
- * Author URI: github.com/aliraxa-hub
+ * Author URI: github.com/aliraza-official
  * Text Domain: https://github.com/CyberNestLtd/cubx-configurator
  */
 
@@ -108,6 +108,7 @@ function get_product_data()
         $attributes = $variation_object->get_variation_attributes();
         $variation_name = implode(' - ', $attributes);
         $gltf_url = get_post_meta($variation['variation_id'], 'gltf_text_field', 'true');
+        $gltf_url_2 = get_post_meta($variation['variation_id'], 'gltf_text_field_2', 'true');
         $variant_data[] = array(
           'id' => $variation['variation_id'],
           'slug' => $variation_name,
@@ -115,6 +116,7 @@ function get_product_data()
           'image' => $variation['image']['url'],
           'description' => $variation_object->get_description(),
           'gltf_url' => $gltf_url ? $gltf_url : '',
+          'gltf_url_2' => $gltf_url_2 ? $gltf_url_2 : '',
         );
       }
     }
@@ -248,27 +250,42 @@ function my_threejs_plugin_output()
               <span aria-hidden="true">&times;</span>
             </div>
           </div>
-          <div class="modal-body p-0">
-            <table class="table m-0">
+          <div class="modal-body p-5">
+            <div class="table-responsive">
+            <table class="table table-bordered border border-1 border-gray">
               <thead>
                 <tr>
                   <th>Name</th>
-                  <th>Cube Quantity</th>
-                  <th>Connector Quantity</th>
-                  <th>Cussion Quantity</th>
-                  <th>Varient</th>
+                  <th>Varient Color with Quantity</th>
                 </tr>
               </thead>
               <tbody id="productDetailsTable">
                 <!-- Product details will be added here dynamically -->
               </tbody>
             </table>
+            </div>
+
+            <div class="py-5">
+              <label for="exampleFormControlTextarea1" class="form-label">Note</label>
+              <textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+            </div>
           </div>
           <div class="modal-footer justify-content-center">
             <div type="button" id="sendRequestButton" class="btn btn-link rounded-0 sendRequest text-decoration-none shadow fw-bold">Send Request</div>
           </div>
         </div>
       </div>
+    </div>
+
+    <div id="requestAlert1" class="alert-success-1">
+        Request sent successfully.
+    </div>
+    <div id="requestAlert1" class="alert-error-1">
+        Failed to send request.
+    </div>
+
+    <div id="requestAlert1" class="alert-cart-error-1">
+        Failed to add in cart.
     </div>
 
 

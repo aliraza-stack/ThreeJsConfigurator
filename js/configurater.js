@@ -51,7 +51,7 @@ var scale = { x: 50, y: 2, z: 50 };
 
 camera = new THREE.PerspectiveCamera(60, width / height, 1, 1000);
 window.camera = camera;
-camera.position.set(0, 3.5, 7.5);
+camera.position.set(0, 5, 11);
 
 const rendererOptions = {
   antialias: true,
@@ -174,6 +174,7 @@ function cloneCube(cubex) {
   const cubexVariants = jQuery("#cubex-variants-" + cubex.id);
   const imageElement = cubexVariants.find("img")[0];
   let model_url = imageElement.dataset.modelUrl;
+  let model_url2 = imageElement.dataset.modelUrl2;
   const loader = new GLTFLoader(loading);
   const dracoLoader = new DRACOLoader();
   dracoLoader.setDecoderPath(WP_DRECO_PATH);
@@ -186,19 +187,42 @@ function cloneCube(cubex) {
   const numCubesToAdd = numbersOfCubes(cubex.id);
 
   function numbersOfCubes(id) {
-    if (WP_PRODUCTS[id].cubes !== "") {
-      return parseInt(WP_PRODUCTS[id].cubes);
-    } else if (WP_PRODUCTS[id].connecters !== "") {
-      return parseInt(WP_PRODUCTS[id].connecters);
-    } else if (WP_PRODUCTS[id].seatcussions !== "") {
-      return parseInt(WP_PRODUCTS[id].seatcussions);
+    if (WP_PRODUCTS[id].tag === PTAG) {
+      let seatcussionQuantity = WP_PRODUCTS[id].seatcussions === "" ? 0 : parseInt(WP_PRODUCTS[id].seatcussions);
+      let cubesQuantity = WP_PRODUCTS[id].cubes === "" ? 0 : parseInt(WP_PRODUCTS[id].cubes);
+
+      console.log(seatcussionQuantity);
+      console.log(cubesQuantity);
+
+
+      if (seatcussionQuantity > 0 && cubesQuantity > 0) {
+        return cubesQuantity;
+      } else {
+        return 0;
+      }
     } else {
-      return 0;
+      return 1;
     }
   }
 
+  let seatcussionQuantity = WP_PRODUCTS[cubex.id].seatcussions === "" ? 0 : parseInt(WP_PRODUCTS[cubex.id].seatcussions);
+  let cubesQuantity = WP_PRODUCTS[cubex.id].cubes === "" ? 0 : parseInt(WP_PRODUCTS[cubex.id].cubes);
+
+  let setCussions = 0;
+  let setCubesQuantity = 0;
+
   for (let i = 0; i < numCubesToAdd; i++) {
-    cubePromises.push(loadAndAddCube(loader, model_url, cubex, i));
+    if (setCussions < seatcussionQuantity && seatcussionQuantity > 0) {
+      console.log("seatcussionQuantity", seatcussionQuantity);
+      cubePromises.push(loadAndAddCube(loader, model_url, cubex, i));
+      setCussions++;
+    } else if (setCubesQuantity < cubesQuantity - seatcussionQuantity && cubesQuantity > 1) {
+      cubePromises.push(loadAndAddCube(loader, model_url2, cubex, i));
+      setCubesQuantity++;
+    } else {
+      console.log("else");
+      cubePromises.push(loadAndAddCube(loader, model_url, cubex, i));
+    }
   }
 
   Promise.all(cubePromises).then((cubes) => {
@@ -208,9 +232,10 @@ function cloneCube(cubex) {
   });
 }
 
-function loadAndAddCube(loader, model_url, cubex, index) {
+function loadAndAddCube(loader, url, cubex, index) {
   return new Promise((resolve) => {
-    loader.load(model_url, (gltf) => {
+    loader.load(url, (gltf) => {
+      console.log(index + 1);
       const cube = gltf.scene.clone();
       const products = WP_PRODUCTS[cubex.id];
       cube.userData.draggable = false;
@@ -220,6 +245,7 @@ function loadAndAddCube(loader, model_url, cubex, index) {
       cube.userData.price = products.price;
       cube.userData.category = products.category ?? "";
       cube.userData.slug = clickedSlug;
+      cube.userData.set = products.tag;
       cube.userData.cubesQuantity = products.cubes === "" ? 0 : parseInt(products.cubes);
       cube.userData.connectorQuantity = products.connecters === "" ? 0 : parseInt(products.connecters);
       cube.userData.seatcussionQuantity = products.seatcussions === "" ? 0 : parseInt(products.seatcussions);
@@ -233,19 +259,27 @@ function loadAndAddCube(loader, model_url, cubex, index) {
 }
 
 function positionCube(cube, index, numCubesToAdd) {
-  const spacingX = -1;
-  const spacingZ = -1;
+  const spacingX = -1; // Adjust the spacing to 1
+  const spacingZ = -1; // Adjust the spacing to 1
+
   if (numCubesToAdd > 1) {
     const row = Math.floor(index / 3);
     const col = index % 3;
     cube.position.x = col * spacingX;
     cube.position.z = row * spacingZ;
   } else {
-    index = allCubes.length - 1;
-    const row = Math.floor(index / 3);
-    const col = index % 3;
-    cube.position.x = col * spacingX;
-    cube.position.z = row * spacingZ;
+    if (index > 1) {
+      const row = Math.floor(index / 3);
+      const col = index % 3;
+      cube.position.x = col * spacingX;
+      cube.position.z = row * spacingZ;
+    } else {
+      index = allCubes.length - 1;
+      const row = Math.floor(index / 3);
+      const col = index % 3;
+      cube.position.x = col * spacingX;
+      cube.position.z = row * spacingZ;
+    }
   }
 }
 
@@ -282,30 +316,76 @@ function deleteAllCubes() {
   busniess_cart_info = {};
   // update the cube counter
   jQuery(".cube_counters").html(0);
+  // data-count attribute set to 0
+  jQuery(".sub-cube-images").attr("data-count", 0);
+  jQuery(".cubeImage").attr("data-count", 0);
+  eachProductQuantity = {};
 }
 
 // DELETE SELECTED CUBE
 jQuery("#deleteCube").on("click", deleteSelectedCube);
 function deleteSelectedCube() {
+  console.log(selectedCube);
   for (let i = 0; i < allCubes.length; i++) {
+    console.log(allCubes[i]);
     if (allCubes[i].children[0] === selectedCube) {
       scene.remove(allCubes[i]);
       allCubes.splice(i, 1);
+      const dataValue = jQuery("#Textures-" + selectedCube.parent.userData.id).attr("data-count");
+      const subDataValue = jQuery("#Sub-Textures-" + selectedCube.parent.userData.id).attr("data-count");
+      if (dataValue > 0) {
+        jQuery("#Textures-" + selectedCube.parent.userData.id).attr("data-count", parseInt(dataValue) - 1);
+      } else if (subDataValue > 0) {
+        jQuery("#Sub-Textures-" + selectedCube.parent.userData.id).attr("data-count", parseInt(subDataValue) - 1);
+      }
+      if (totalQuenty > 0) {
+        totalQuenty = totalQuenty - 1;
+      }
+      console.log(totalQuenty);
       const slug = busniess_cart_info[selectedCube.parent.userData.slug];
-      console.log(selectedCube);
       console.log(slug);
-      console.log(busniess_cart_info);
-      if (slug.cussionQuantity <= selectedCube.userData.cubesQuantity) {
-        var seatcussionQuantity = slug.seatcussionQuantity - 1;
-      }
       if (slug) {
-        slug.cubesQuantity = slug.cubesQuantity - 1;
-        slug.connectorQuantity = slug.connectorQuantity - 1;
-        slug.cussionQuantity = seatcussionQuantity;
+        if (slug.seatcussionQuantity <= selectedCube.userData.cubesQuantity) {
+          var cussionQuantity = slug.seatcussionQuantity - 1;
+        }
+        if (slug) {
+          slug.cubesQuantity = slug.cubesQuantity - 1;
+          slug.connectorQuantity = slug.connectorQuantity - 1;
+          slug.seatcussionQuantity = cussionQuantity;
+        }
       }
+      jQuery("#cube_counters_" + selectedCube.parent.userData.id).html(allCubes.filter((cube) => cube.userData.id === selectedCube.parent.userData.id).length);
+    } else if (allCubes[i] === selectedCube) {
+      scene.remove(allCubes[i]);
+      allCubes.splice(i, 1);
+      const dataValue = jQuery("#Textures-" + selectedCube.userData.id).attr("data-count");
+      const subDataValue = jQuery("#Sub-Textures-" + selectedCube.userData.id).attr("data-count");
+      if (dataValue > 0) {
+        jQuery("#Textures-" + selectedCube.userData.id).attr("data-count", parseInt(dataValue) - 1);
+      } else if (subDataValue > 0) {
+        jQuery("#Sub-Textures-" + selectedCube.userData.id).attr("data-count", parseInt(subDataValue) - 1);
+      }
+      if (totalQuenty > 0) {
+        totalQuenty = totalQuenty - 1;
+      }
+      console.log(totalQuenty);
+      const slug = busniess_cart_info[selectedCube.userData.slug];
+      console.log(slug);
+      if (slug) {
+        if (slug.seatcussionQuantity <= selectedCube.userData.cubesQuantity) {
+          var cussionQuantity = slug.seatcussionQuantity - 1;
+        }
+        if (slug) {
+          slug.cubesQuantity = slug.cubesQuantity - 1;
+          slug.connectorQuantity = slug.connectorQuantity - 1;
+          slug.seatcussionQuantity = cussionQuantity;
+        }
+      }
+      jQuery("#cube_counters_" + selectedCube.userData.id).html(allCubes.filter((cube) => cube.userData.id === selectedCube.userData.id).length);
+
     }
   }
-  jQuery("#cube_counters_" + selectedCube.parent.userData.id).html(allCubes.filter((cube) => cube.userData.id === selectedCube.parent.userData.id).length);
+  selectedCube = null;
 }
 
 
@@ -322,10 +402,10 @@ const getPrimaryCubes = () => {
 const getSecondaryCubes = () => {
   let { uCube, oCube } = getPrimaryCubes();
   let OCubeProducts = Object.values(WP_PRODUCTS).filter(
-    (product) => product.category == "O-Cube" && product.id !== oCube.id && product.name !== INLAY
+    (product) => product.category == "O-Cube" && product.id !== oCube.id && product.name !== INLAY && product.name !== CONNECTOR
   );
   let UCubeProducts = Object.values(WP_PRODUCTS).filter(
-    (product) => product.category == "U-Cube" && product.id !== uCube.id && product.name !== INLAY
+    (product) => product.category == "U-Cube" && product.id !== uCube.id && product.name !== INLAY && product.name !== CONNECTOR
   );
   return { OCubeProducts, UCubeProducts };
 };
@@ -582,11 +662,6 @@ function onModelUp(event) {
     selected.position.x = Math.round(selected.position.x);
     selected.position.y = (Math.round(selected.position.y)) / 1.05;
     selected.position.z = Math.round(selected.position.z);
-    // if (selected.parent.userData.type === UCUBE || selected.parent.userData.type === OCUBE) {
-    //   selected.position.x = Math.round(selected.position.x);
-    //   selected.position.y = (Math.round(selected.position.y)) / 1.05;
-    //   selected.position.z = Math.round(selected.position.z);
-    // }
   }
 
 
@@ -598,9 +673,19 @@ function onModelUp(event) {
 }
 
 if (WP_CURRENT_USER_ROLE === BUSINESS_CUSTOMER) {
-  jQuery("#requestOffer").html("Request an Offer");
+  jQuery("#requestOffer").html(REQUEST_AN_OFFER);
 } else {
-  jQuery("#requestOffer").html("Add to Cart");
+  jQuery("#requestOffer").html(ADD_TO_CART);
+}
+
+function showAlert(messageClass, duration) {
+  var alertElement = document.querySelector("." + messageClass);
+  if (alertElement) {
+    alertElement.style.display = "block";
+    setTimeout(function () {
+      alertElement.style.display = "none";
+    }, duration);
+  }
 }
 
 jQuery("#uCube").html(UCUBE);
@@ -617,147 +702,167 @@ document.body.addEventListener('click', function (event) {
   }
 });
 
+function handleRequestOfferClick() {
+  jQuery("#productDetailsTable").empty();
+  let productRow = '';
 
+  allCubes.forEach((prd) => {
+    let product = prd.userData;
+    if (busniess_cart_info[product.slug] == undefined) {
+      busniess_cart_info[product.slug] = product;
+    } else {
+      var info = busniess_cart_info[product.slug];
+      info.id = product.id;
+      info.name = product.type;
+
+      info.quantity = (info.cubesQuantity + product.cubesQuantity) / product.cubesQuantity;
+      info.cubesQuantity = eachProductQuantity[product.id] * product.cubesQuantity;
+      info.connectorQuantity = eachProductQuantity[product.id] * product.connectorQuantity;
+      info.seatcussionQuantity = eachProductQuantity[product.id] * product.seatcussionQuantity;
+    }
+  });
+  for (const key in busniess_cart_info) {
+    let product = busniess_cart_info[key];
+    var product_slug = product.slug.toUpperCase();
+    var color = product_slug.split(' - ');
+    var set_color = {};
+    if (product.type === UCUBE || product.type === OCUBE) {
+      set_color = {
+        'Cube Surface': color[0] + ' - ' + product.cubesQuantity,
+        'Connector': color[1] + ' - ' + product.cubesQuantity,
+      }
+    } else if (product.type === SEATCUSSION) {
+      set_color = {
+        SEATCUSSION: color[0] + ' - ' + product.seatcussionQuantity,
+      }
+    } else if (WP_PRODUCTS[product.id].tag === PTAG) {
+      set_color = {
+        "Connector": color[0] + ' - ' + product.connectorQuantity,
+        "Seatcushion": color[1] + ' - ' + product.seatcussionQuantity,
+      }
+    }
+
+    var productVarient = '';
+    for (const key in set_color) {
+      productVarient = `${productVarient}<p>${key}: ${set_color[key]}</p>`;
+    }
+
+    productRow = `${productRow}<tr data-slug="${product.slug}">
+            <td>${product.type}</td>
+            <td class="productVarient">${productVarient}</td>
+          </tr>`;
+  }
+  if (productRow != '') {
+    jQuery("#productDetailsTable").html(productRow);
+
+    jQuery("#productDetailsModal").modal("show");
+
+    let isRequestInProgress = false;
+    function sendRequest() {
+      if (isRequestInProgress) {
+        return;
+      }
+      isRequestInProgress = true;
+
+      jQuery.ajax({
+        url: '/wp-admin/admin-ajax.php',
+        type: "POST",
+        cache: false,
+        data: {
+          action: "send_request",
+          products: busniess_cart_info,
+          note: jQuery("#exampleFormControlTextarea1").val(),
+        },
+        success: function (response) {
+          jQuery("#productDetailsModal").modal("hide");
+          if (response.success) {
+            showAlert("alert-success-1", 4000);
+          }
+        },
+        error: function (error) {
+          showAlert("alert-error-1", 4000);
+        },
+        complete: function () {
+          isRequestInProgress = false;
+          jQuery("#productDetailsTable").empty();
+          jQuery("#sendRequestButton").off("click", sendRequest);
+        }
+      });
+    }
+    jQuery("#sendRequestButton").on("click", sendRequest);
+
+  } else {
+    jQuery("#requestOffer").prop("disabled", true);
+  }
+}
+
+function handleAddToCartClick() {
+  var productsToAddToCart = [];
+  var productDetailsMap = {};
+
+  allCubes.forEach((product) => {
+    const quantity = totalQuenty;
+    if (quantity > 0) {
+      const productName = product.userData.type;
+      const variants = WP_PRODUCTS[product.userData.id].variants;
+      const varient_slug = product.userData.slug;
+      const varient = variants.filter((varient) => varient.slug === varient_slug)[0];
+
+      if (productDetailsMap[productName] && productDetailsMap[productName].varientId === varient.id) {
+        productDetailsMap[productName].quantity = eachProductQuantity[product.userData.id];
+        productDetailsMap[productName].varientId = varient.id;
+        productDetailsMap[productName].name = productName;
+        productDetailsMap[productName].id = product.userData.id;
+        productDetailsMap[productName].cubeQuantity = product.userData.cubesQuantity ?? 0;
+        productDetailsMap[productName].connectorQuantity = product.userData.connectorQuantity ?? 0;
+        productDetailsMap[productName].seatcussionQuantity = product.userData.seatcussionQuantity ?? 0;
+      } else {
+        productDetailsMap[productName] = {
+          id: product.userData.id,
+          name: productName,
+          quantity: eachProductQuantity[product.userData.id],
+          varientId: varient.id,
+          cubeQuantity: product.userData.cubesQuantity ?? 0,
+          connectorQuantity: product.userData.connectorQuantity ?? 0,
+          seatcussionQuantity: product.userData.seatcussionQuantity ?? 0,
+        };
+      }
+
+      productsToAddToCart.push({ ...productDetailsMap[productName] });
+
+    }
+  });
+  if (productsToAddToCart.length > 0) {
+    jQuery.ajax({
+      type: "POST",
+      dataType: "json",
+      url: "/wp-admin/admin-ajax.php",
+      data: {
+        action: 'configurator_add_to_cart',
+        products: productsToAddToCart,
+      },
+      success: function (response) {
+        if (response.success) {
+          window.location = '/cart/';
+        } else {
+          showAlert("alert-cart-error-1", 4000);
+        }
+      },
+    });
+  } else {
+    jQuery("#requestOffer").prop("disabled", true);
+  }
+}
 
 jQuery("#requestOffer").click(function () {
   if (WP_CURRENT_USER_ROLE === BUSINESS_CUSTOMER) {
-    jQuery("#productDetailsTable").empty();
-    var productDetailsMap = {};
-
-    let productRow = '';
-
-    allCubes.forEach((prd) => {
-      let product = prd.userData;
-      if (busniess_cart_info[product.slug] == undefined) {
-        busniess_cart_info[product.slug] = product
-      } else {
-        const info = busniess_cart_info[product.slug];
-        info.id = product.id;
-        info.name = product.type;
-        info.quantity = (info.cubesQuantity + product.cubesQuantity) / product.cubesQuantity;
-        info.cubesQuantity = eachProductQuantity[product.id] * product.cubesQuantity;
-        info.connectorQuantity = eachProductQuantity[product.id] * product.connectorQuantity;
-        info.cussionQuantity = eachProductQuantity[product.id] * product.seatcussionQuantity;
-
-      }
-    });
-    for (const key in busniess_cart_info) {
-      let product = busniess_cart_info[key];
-      productRow = `${productRow}<tr data-slug="${product.slug}">
-            <td>${product.type}</td>
-            <td class="productCubesQuantity">${product.cubesQuantity ?? 0}</td>
-            <td class="productCubesQuantity">${product.connectorQuantity ?? 0}</td>
-            <td class="productCubesQuantity">${product.cussionQuantity ?? 0}</td>
-            <td class="productVarient">${product.slug}</td>
-          </tr>`;
-    }
-    if (productRow != '') {
-      jQuery("#productDetailsTable").html(productRow);
-
-      jQuery("#productDetailsModal").modal("show");
-
-      // Define a flag to track if a request is in progress
-      let isRequestInProgress = false;
-      // Define a function to handle the click event
-      function sendRequest() {
-        // Check if a request is already in progress
-        if (isRequestInProgress) {
-          return; // Do nothing if a request is already ongoing
-        }
-
-        // Set the flag to indicate that a request is now in progress
-        isRequestInProgress = true;
-
-        jQuery.ajax({
-          url: '/wp-admin/admin-ajax.php',
-          type: "POST",
-          cache: false,
-          data: {
-            action: "send_request",
-            products: busniess_cart_info,
-          },
-          success: function (response) {
-            jQuery("#productDetailsModal").modal("hide");
-            alert("Request sent successfully.");
-          },
-          error: function (error) {
-            alert("Error sending request.");
-          },
-          complete: function () {
-            // Reset the flag when the request is complete, whether successful or not
-            isRequestInProgress = false;
-
-            // Clear the list and hide the modal
-            jQuery("#productDetailsTable").empty();
-
-            // Unbind the click event after the first click
-            jQuery("#sendRequestButton").off("click", sendRequest);
-          }
-        });
-      }
-
-      // Attach the click event handler
-      jQuery("#sendRequestButton").on("click", sendRequest);
-
-    } else {
-      jQuery("#requestOffer").prop("disabled", true);
-    }
+    handleRequestOfferClick();
   } else {
-    var productsToAddToCart = [];
-    var productDetailsMap = {};
-
-    allCubes.forEach((product) => {
-      const quantity = totalQuenty;
-      if (quantity > 0) {
-        const productName = product.userData.type;
-        const price = product.userData.price ?? 0;
-        const variants = WP_PRODUCTS[product.userData.id].variants;
-        const varient_slug = product.userData.slug;
-        const varient = variants.filter((varient) => varient.slug === varient_slug)[0];
-
-        // Check if a product with the same name and variant ID exists in productDetailsMap
-        if (productDetailsMap[productName] && productDetailsMap[productName].varientId === varient.id) {
-          productDetailsMap[productName].quantity = eachProductQuantity[product.userData.id];
-          productDetailsMap[productName].varientId = varient.id;
-          productDetailsMap[productName].name = productName;
-          productDetailsMap[productName].id = product.userData.id;
-        } else {
-          productDetailsMap[productName] = {
-            id: product.userData.id,
-            name: productName,
-            quantity: eachProductQuantity[product.userData.id],
-            varientId: varient.id,
-          };
-        }
-
-        // Push the product details into productsToAddToCart
-        productsToAddToCart.push({ ...productDetailsMap[productName] });
-        window.productsToAddToCart = productsToAddToCart;
-
-      }
-    });
-    if (productsToAddToCart.length > 0) {
-      jQuery.ajax({
-        type: "POST",
-        dataType: "json",
-        url: "/wp-admin/admin-ajax.php",
-        data: {
-          action: 'configurator_add_to_cart',
-          products: productsToAddToCart,
-        },
-        success: function (response) {
-          if (response.success) {
-            window.location = '/cart/';
-          } else {
-            alert("Error adding products to the cart.");
-          }
-        },
-      });
-    } else {
-      jQuery("#requestOffer").prop("disabled", true);
-    }
+    handleAddToCartClick();
   }
 });
+
+
 
 
 

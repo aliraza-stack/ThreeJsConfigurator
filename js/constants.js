@@ -1,5 +1,9 @@
 const UCUBE = 'U-Cube';
 const OCUBE = 'O-Cube';
 const INLAY = 'Inlay';
+const SEATCUSSION = 'Seatcushion';
 const PTAG = 'Sets';
 const BUSINESS_CUSTOMER = 'Business Customer';
+const CONNECTOR = 'Connecter';
+const REQUEST_AN_OFFER = 'Request an offer';
+const ADD_TO_CART = 'Add to cart';
