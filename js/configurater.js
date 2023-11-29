@@ -38,16 +38,218 @@ var clickedSlug = null;
 var totalQuenty = 0;
 var eachProductQuantity = {};
 var busniess_cart_info = {};
-
+let isRequestInProgress = false;
 
 var cube;
 // var GUI = new dat.GUI();
-
-
 var cubePosition = { x: 0, y: 0, z: 0 };
 var mousePreviousPosition = { x: 0, y: 0, };
 var pos = { x: 0, y: -1, z: 0 };
 var scale = { x: 50, y: 2, z: 50 };
+var model_url;
+var model_url2;
+
+
+// U CUBE SETS ARRAY
+var UCUBESETS = {
+  'purple': {
+    'S': {
+      connecter: 1,
+      seatcushion: 1
+    },
+    'M': {
+        connecter: 2,
+        seatcushion: 1
+    },
+    'L': {
+        connecter: 3,
+        seatcushion: 2
+    },
+  },
+  'green': {
+    'S': {
+      connecter: 1,
+      seatcushion: 1
+    },
+    'M': {
+        connecter: 2,
+        seatcushion: 1
+    },
+    'L': {
+        connecter: 3,
+        seatcushion: 2
+    },
+  },
+  'yellow': {
+    'S': {
+      connecter: 2,
+      seatcushion: 1
+    },
+    'M': {
+        connecter: 4,
+        seatcushion: 2
+    },
+    'L': {
+        connecter: 6,
+        seatcushion: 2
+    },
+  },
+  'blue': {
+    'S': {
+      connecter: 2,
+      seatcushion: 1
+    },
+    'M': {
+        connecter: 4,
+        seatcushion: 2
+    },
+    'L': {
+        connecter: 6,
+        seatcushion: 3
+    },
+  },
+  'gray': {
+    'S': {
+      connecter: 2,
+      seatcushion: 0
+    },
+    'M': {
+        connecter: 4,
+        seatcushion: 2
+    },
+    'L': {
+        connecter: 6,
+        seatcushion: 3
+    },
+  },
+  'URL': {
+    'purple - purple': {
+      connecter_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/U_cube_purple_connector.gltf',
+      seatcusion_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/U_cube_purple_purple-cussion.gltf',
+    },
+    'green - green': {
+      connecter_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/U_cube_green_connector.gltf',
+      seatcusion_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/U_cube_green_green-cussion.gltf',
+    },
+    'yellow - yellow': {
+      connecter_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/U_cube_yellow_connector.gltf',
+      seatcusion_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/U_cube_yellow_yellow-cussion.gltf',
+    },
+    'blue - blue': {
+      connecter_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/11/U_cube_blue_connector.gltf',
+      seatcusion_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/U_cube_blue_blue-cussion.gltf',
+    },
+    'gray - gray': {
+      connecter_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/U_cube_gray_connector.gltf',
+      seatcusion_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/U_cube_gray_gray-cussion.gltf',
+    },
+  }
+};
+
+
+// O CUBE SETS ARRAY
+var OCUBESETS = {
+  'slug': {
+    'S': {
+      connecter: 2,
+      seatcushion: 4,
+      seatcushion_per: 1,
+    },
+    'M': {
+        connecter: 4,
+        seatcushion: 8,
+        seatcushion_per: 2,
+    },
+    'L': {
+        connecter: 6,
+        seatcushion: 16,
+        seatcushion_per: 4,
+    },
+  },
+  'black': {
+    'S': {
+      connecter: 2,
+      seatcushion: 1
+    },
+    'M': {
+        connecter: 4,
+        seatcushion: 2
+    },
+    'L': {
+        connecter: 6,
+        seatcushion: 4
+    },
+  },
+  'silver': {
+    'S': {
+      connecter: 2,
+      seatcushion: 1
+    },
+    'M': {
+        connecter: 4,
+        seatcushion: 2
+    },
+    'L': {
+        connecter: 6,
+        seatcushion: 4
+    },
+  },
+  'copper': {
+    'S': {
+      connecter: 2,
+      seatcushion: 1
+    },
+    'M': {
+        connecter: 4,
+        seatcushion: 2
+    },
+    'L': {
+        connecter: 6,
+        seatcushion: 4
+    },
+  },
+  'bronze': {
+    'S': {
+      connecter: 2,
+      seatcushion: 1
+    },
+    'M': {
+        connecter: 4,
+        seatcushion: 2
+    },
+    'L': {
+        connecter: 6,
+        seatcushion: 4
+    },
+  },
+  'URL': {
+    'black - black': {
+      connector_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/O_cube_black-connector.gltf',
+      seatcusion_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/O_cube_black_black.gltf',
+    },
+    'copper - black': {
+        connector_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/O_cube_copper-connector.gltf',
+        seatcusion_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/O_cube_copper_black.gltf',
+    },
+    'silver - black': {
+        connector_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/O_cube_silver-connector.gltf',
+        seatcusion_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/O_cube_silver_black.gltf',
+    },
+    'bronze - black': {
+        connector_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/O_cube_browne-connector.gltf',
+        seatcusion_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/O_cube_brownze_black.gltf',
+    },
+  }
+}
+
+allData("UCUBESETS", UCUBESETS);
+allData("OCUBESETS", OCUBESETS);
+
+
+
+
+
+
 
 camera = new THREE.PerspectiveCamera(60, width / height, 1, 1000);
 window.camera = camera;
@@ -85,8 +287,8 @@ camera.lookAt(pivot.position);
 // CAMERA CONTROLS
 controls = new OrbitControls(camera, renderer.domElement);
 controls.enablePan = false;
-// controls.maxPolarAngle = 0.9 * Math.PI / 2;
-// controls.minPolarAngle = 0.7 * Math.PI / 2;
+controls.maxPolarAngle = 0.9 * Math.PI / 2;
+controls.minPolarAngle = 0.5 * Math.PI / 2;
 controls.minAzimuthAngle = -Math.PI;
 controls.maxAzimuthAngle = Math.PI;
 controls.enableZoom = false;
@@ -95,6 +297,28 @@ controls.enableZoom = false;
 // AMBIENT LIGHT
 const ambientLight = new THREE.AmbientLight("#ffe2a9", 2);
 scene.add(ambientLight);
+
+// flore plane
+function createFloor() {
+  const floorGeometry = new THREE.PlaneGeometry(100, 100);
+  const floorMaterial = new THREE.MeshStandardMaterial({
+    color: "#6C5F5B",
+    side: THREE.DoubleSide,
+  });
+  const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+  floor.receiveShadow = true;
+  floor.rotation.x = Math.PI * -0.5;
+  scene.add(floor);
+}
+
+const floorY = 0;
+function restrictObjectToFloor(object) {
+  if (object && object.position.y < floorY) {
+    object.position.y = floorY;
+  }
+}
+
+
 
 
 // HEMISPHERE LIGHT
@@ -173,8 +397,37 @@ function hideAlert() {
 function cloneCube(cubex) {
   const cubexVariants = jQuery("#cubex-variants-" + cubex.id);
   const imageElement = cubexVariants.find("img")[0];
-  let model_url = imageElement.dataset.modelUrl;
-  let model_url2 = imageElement.dataset.modelUrl2;
+  if(WP_PRODUCTS[cubex.id].tag === PTAG) {
+    var uCubeButton = jQuery("button#uCube");
+    if (uCubeButton.hasClass("active")) {
+      const uData =  WP_PRODUCTS[cubex.id].variants.map((variant) => {
+        return {
+          slug: variant.slug,
+        }
+      });
+      const uCubeData = uData.filter((data) => data.slug in UCUBESETS['URL']);
+      uCubeData.forEach((data) => {
+          model_url = UCUBESETS['URL'][data.slug].connecter_url;
+          model_url2 = UCUBESETS['URL'][data.slug].seatcusion_url;
+      });
+    } else {
+      const oData =  WP_PRODUCTS[cubex.id].variants.map((variant) => {
+        return {
+          slug: variant.slug,
+        }
+      });
+      const oCubeData = oData.filter((data) => data.slug in OCUBESETS['URL']);
+      oCubeData.forEach((data) => {
+          model_url = OCUBESETS['URL'][data.slug].connecter_url;
+          model_url2 = OCUBESETS['URL'][data.slug].seatcusion_url;
+      });
+    }
+  } else {
+    model_url = imageElement.dataset.modelUrl;
+    model_url2 = imageElement.dataset.modelUrl2;
+  }
+  console.log(model_url, model_url2);
+
   const loader = new GLTFLoader(loading);
   const dracoLoader = new DRACOLoader();
   dracoLoader.setDecoderPath(WP_DRECO_PATH);
@@ -188,42 +441,63 @@ function cloneCube(cubex) {
 
   function numbersOfCubes(id) {
     if (WP_PRODUCTS[id].tag === PTAG) {
-      let seatcussionQuantity = WP_PRODUCTS[id].seatcussions === "" ? 0 : parseInt(WP_PRODUCTS[id].seatcussions);
       let cubesQuantity = WP_PRODUCTS[id].cubes === "" ? 0 : parseInt(WP_PRODUCTS[id].cubes);
-
-      console.log(seatcussionQuantity);
       console.log(cubesQuantity);
-
-
-      if (seatcussionQuantity > 0 && cubesQuantity > 0) {
-        return cubesQuantity;
-      } else {
-        return 0;
-      }
+      return cubesQuantity;
     } else {
       return 1;
     }
   }
 
-  let seatcussionQuantity = WP_PRODUCTS[cubex.id].seatcussions === "" ? 0 : parseInt(WP_PRODUCTS[cubex.id].seatcussions);
-  let cubesQuantity = WP_PRODUCTS[cubex.id].cubes === "" ? 0 : parseInt(WP_PRODUCTS[cubex.id].cubes);
-
-  let setCussions = 0;
-  let setCubesQuantity = 0;
-
-  for (let i = 0; i < numCubesToAdd; i++) {
-    if (setCussions < seatcussionQuantity && seatcussionQuantity > 0) {
-      console.log("seatcussionQuantity", seatcussionQuantity);
-      cubePromises.push(loadAndAddCube(loader, model_url, cubex, i));
-      setCussions++;
-    } else if (setCubesQuantity < cubesQuantity - seatcussionQuantity && cubesQuantity > 1) {
-      cubePromises.push(loadAndAddCube(loader, model_url2, cubex, i));
-      setCubesQuantity++;
+  let i = 0;
+    if (WP_PRODUCTS[cubex.id].tag === PTAG) {
+      var uCubeButton = jQuery("button#uCube");
+      if (uCubeButton.hasClass("active")) {
+        Object.keys(ALL_DATA['UCUBESETS'].URL).forEach((data) => {
+          const singleSlug = data.split(" - ")[0];
+          const slugLast = cubex.title.split("-")[1];
+          const uCubeData = ALL_DATA.UCUBESETS[singleSlug][slugLast];
+       if( uCubeData.connecter >= uCubeData.seatcushion ){
+          for( let cubeCounter = 0; uCubeData.connecter > cubeCounter; cubeCounter++ ){
+            let mi_url = ALL_DATA.UCUBESETS.URL[data];
+            let threedUrl = cubeCounter >= uCubeData.seatcushion ? mi_url['connecter_url'] : mi_url['seatcusion_url'];
+            var isSeatcushion = cubeCounter >= uCubeData.seatcushion ? false : true;
+            console.log("cubex",cubex);
+            cubePromises.push(loadAndAddCube(loader, threedUrl, cubex, i++, isSeatcushion));
+          }
+        }
+        else if( uCubeData.connecter <= uCubeData.seatcushion ){
+          for( let cubeCounter = 0; uCubeData.seatcushion > cubeCounter; cubeCounter++ ){
+            let mi_url = ALL_DATA.UCUBESETS.URL[data];
+            let threedUrl = cubeCounter >= uCubeData.connector ? mi_url['connecter_url'] : mi_url['seatcusion_url'];
+            cubePromises.push(loadAndAddCube(loader, threedUrl, cubex, i++));
+          }
+        }
+        });
+      } else {
+        Object.keys(ALL_DATA['OCUBESETS'].URL).forEach((data) => {
+          const singleSlug = data.split(" - ")[0];
+          const slugLast = cubex.title.split("-")[1];
+          const uCubeData = ALL_DATA.OCUBESETS[singleSlug][slugLast];
+          console.log(uCubeData, data);
+       if( uCubeData.connecter >= uCubeData.seatcushion ){
+          for( let cubeCounter = 0; uCubeData.connecter > cubeCounter; cubeCounter++ ){
+            let mi_url = ALL_DATA.OCUBESETS.URL[data];
+            let threedUrl = cubeCounter >= uCubeData.seatcushion ? mi_url['seatcusion_url'] : mi_url['connecter_url'];
+            cubePromises.push(loadAndAddCube(loader, threedUrl, cubex, i++));
+          }
+        }else if( uCubeData.connecter <= uCubeData.seatcushion ){
+          for( let cubeCounter = 0; uCubeData.seatcushion > cubeCounter; cubeCounter++ ){
+            let mi_url = ALL_DATA.OCUBESETS.URL[data];
+            let threedUrl = cubeCounter >= uCubeData.connector ? mi_url['connecter_url'] : mi_url['seatcusion_url'];
+            cubePromises.push(loadAndAddCube(loader, threedUrl, cubex, i++));
+          }
+        }
+        });
+      }
     } else {
-      console.log("else");
       cubePromises.push(loadAndAddCube(loader, model_url, cubex, i));
     }
-  }
 
   Promise.all(cubePromises).then((cubes) => {
     cubes.forEach((cube, index) => {
@@ -232,10 +506,10 @@ function cloneCube(cubex) {
   });
 }
 
-function loadAndAddCube(loader, url, cubex, index) {
+function loadAndAddCube(loader, url, cubex, index, isSeatcushion) {
   return new Promise((resolve) => {
     loader.load(url, (gltf) => {
-      console.log(index + 1);
+      console.log( 'modelURL: ', url, index, cubex )
       const cube = gltf.scene.clone();
       const products = WP_PRODUCTS[cubex.id];
       cube.userData.draggable = false;
@@ -249,6 +523,7 @@ function loadAndAddCube(loader, url, cubex, index) {
       cube.userData.cubesQuantity = products.cubes === "" ? 0 : parseInt(products.cubes);
       cube.userData.connectorQuantity = products.connecters === "" ? 0 : parseInt(products.connecters);
       cube.userData.seatcussionQuantity = products.seatcussions === "" ? 0 : parseInt(products.seatcussions);
+      cube.isSeatcushion = isSeatcushion;
       allCubes.push(cube);
       allData("allCubes", allCubes);
       jQuery("#cube_counters_" + cubex.id).html(allCubes.filter((cube) => cube.userData.id === cubex.id).length);
@@ -259,26 +534,27 @@ function loadAndAddCube(loader, url, cubex, index) {
 }
 
 function positionCube(cube, index, numCubesToAdd) {
-  const spacingX = -1; // Adjust the spacing to 1
-  const spacingZ = -1; // Adjust the spacing to 1
+  console.log(cube, index, numCubesToAdd);
+  const spacingX = -1;
+  const spacingZ = -1;
 
   if (numCubesToAdd > 1) {
-    const row = Math.floor(index / 3);
-    const col = index % 3;
-    cube.position.x = col * spacingX;
-    cube.position.z = row * spacingZ;
+    const row = Math.floor(index / 4);
+    const col = index % 4;
+    cube.children[0].position.x = col * spacingX;
+    cube.children[0].position.z = row * spacingZ;
   } else {
     if (index > 1) {
-      const row = Math.floor(index / 3);
-      const col = index % 3;
-      cube.position.x = col * spacingX;
-      cube.position.z = row * spacingZ;
+      const row = Math.floor(index / 4);
+      const col = index % 4;
+      cube.children[0].position.x = col * spacingX;
+      cube.children[0].position.z = row * spacingZ;
     } else {
       index = allCubes.length - 1;
-      const row = Math.floor(index / 3);
-      const col = index % 3;
-      cube.position.x = col * spacingX;
-      cube.position.z = row * spacingZ;
+      const row = Math.floor(index / 4);
+      const col = index % 4;
+      cube.children[0].position.x = col * spacingX;
+      cube.children[0].position.z = row * spacingZ;
     }
   }
 }
@@ -313,6 +589,10 @@ function deleteAllCubes() {
     scene.remove(allCubes[i]);
   }
   allCubes = [];
+  ALL_DATA = {
+    UCUBESETS,
+    OCUBESETS,
+  };
   busniess_cart_info = {};
   // update the cube counter
   jQuery(".cube_counters").html(0);
@@ -325,7 +605,6 @@ function deleteAllCubes() {
 // DELETE SELECTED CUBE
 jQuery("#deleteCube").on("click", deleteSelectedCube);
 function deleteSelectedCube() {
-  console.log(selectedCube);
   for (let i = 0; i < allCubes.length; i++) {
     console.log(allCubes[i]);
     if (allCubes[i].children[0] === selectedCube) {
@@ -400,13 +679,25 @@ const getPrimaryCubes = () => {
 };
 
 const getSecondaryCubes = () => {
-  let { uCube, oCube } = getPrimaryCubes();
-  let OCubeProducts = Object.values(WP_PRODUCTS).filter(
-    (product) => product.category == "O-Cube" && product.id !== oCube.id && product.name !== INLAY && product.name !== CONNECTOR
+  var activeLanguageElement = document.querySelector('.wpml-ls-current-language');
+  var activeLanguage = activeLanguageElement.querySelector('.wpml-ls-native').textContent.trim();
+  var selectedLanguage = activeLanguage.toLowerCase();
+  var OCubeProducts, UCubeProducts;
+	if (selectedLanguage == "english") {
+  OCubeProducts = Object.values(WP_PRODUCTS).filter(
+    (product) => product.show_in_configurator === true && (product.category == "O-Wuerfel" || product.category == "O-Cube") && product.language == "en"
   );
-  let UCubeProducts = Object.values(WP_PRODUCTS).filter(
-    (product) => product.category == "U-Cube" && product.id !== uCube.id && product.name !== INLAY && product.name !== CONNECTOR
+  UCubeProducts = Object.values(WP_PRODUCTS).filter(
+    (product) => product.show_in_configurator === true  && (product.category == "U-Wuerfel" || product.category == "U-Cube") && product.language == "en"
   );
+	} else {
+		OCubeProducts = Object.values(WP_PRODUCTS).filter(
+    (product) => product.show_in_configurator === true && (product.category == "O-Wuerfel" || product.category == "O-Cube") && product.language == "de"
+  );
+  UCubeProducts = Object.values(WP_PRODUCTS).filter(
+    (product) => product.show_in_configurator === true  && (product.category == "U-Wuerfel" || product.category == "U-Cube") && product.language == "de"
+  );
+	}
   return { OCubeProducts, UCubeProducts };
 };
 
@@ -424,8 +715,8 @@ const attributesAndMenus = (cubex) => {
 
   let { OCubeProducts, UCubeProducts } = getSecondaryCubes();
 
-  let o_menu_items = OCubeProducts.map((product) => `<a class="dropdown-item" data-product-id="${product.id}" data-name=${product.name}>${product.name}</a>`).join("");
-  let u_menu_items = UCubeProducts.map((product) => `<a class="dropdown-item" data-product-id="${product.id}" data-name=${product.name}>${product.name}</a>`).join("");
+  let o_menu_items = OCubeProducts.map((product) => product);
+  let u_menu_items = UCubeProducts.map((product) => product);
 
   return { connectorAttribute, surfaceAttribute: osurfaceAttribute, seatcussionAttribute, connector_div, u_surface_div, o_surface_div, seatcussion_div, u_menu_items, o_menu_items };
 };
@@ -442,6 +733,7 @@ const cubex = {
   seatcussion_div: null,
   price: null,
   tag: "",
+  isSeatcushion: false,
 };
 
 jQuery(".btn-switch-cube").click(function () {
@@ -481,7 +773,7 @@ function switchCubeModel(cubex) {
 
   CubeModel.init(cubex);
 
-  jQuery("#Textures-" + cubex.id).click(function (e) {
+  jQuery("#Textures-" + cubex.id + ', #Textures-tooltip-' + cubex.id).click(function (e) {
     cloneCube(cubex);
     allData("cubex", cubex);
     clickedSlug = e.target.dataset.slug;
@@ -511,8 +803,8 @@ function switchCubeModel(cubex) {
   deleteAllCubes();
 }
 
-jQuery(document).on('click', ".sub-cube-images", function (e) {
-  const productId = jQuery(e.target).data("product-id");
+jQuery(document).on('click', ".sub-cube-images, .Sub-Textures-tooltip", function (e) {
+  var productId = jQuery(e.target).data("product-id");
   const slug = jQuery(e.target).data("slug");
   allSubCubes.forEach((subProduct) => {
     if (subProduct.id === productId) {
@@ -523,7 +815,10 @@ jQuery(document).on('click', ".sub-cube-images", function (e) {
   })
 });
 
+
+
 function animate() {
+  restrictObjectToFloor(selected);
   requestAnimationFrame(animate);
   renderer.render(scene, camera);
   controls.update();
@@ -621,6 +916,9 @@ function onModelMove(event) {
     return;
   }
   intersects = raycaster.intersectObjects(allCubes, true);
+  if (selectedCube) {
+    compare(allCubes, selectedCube);
+  }
   if (intersects.length > 0) {
     if (selected != intersects[0].object.parent) {
       selected = intersects[0].object.parent;
@@ -662,15 +960,101 @@ function onModelUp(event) {
     selected.position.x = Math.round(selected.position.x);
     selected.position.y = (Math.round(selected.position.y)) / 1.05;
     selected.position.z = Math.round(selected.position.z);
+    compare(allCubes, selected);
+
   }
 
 
   if (Dragged) {
     Dragged = null;
     selected.parent.userData.draggable = false;
+
   }
   document.body.style.cursor = "auto";
 }
+
+function getXZCompare( all, selected, propsedY ){
+  let is_match = false;
+  let match = selected;
+  all.forEach(function(data){
+    let xz = data.children[0].position;
+    // console.log( 'match', xz.x, xz.y, xz.z, '=', match.x, propsedY, match.z, );
+    // console.log('susion: ', data.children[0].parent.isSeatcushion);
+    if( xz.x == match.x && xz.z == match.z && xz.y == propsedY && data.children[0].parent.isSeatcushion ){
+      // console.log( 'match-cusion', data.children[0].parent.name);
+      is_match = 2;
+      return is_match;
+    }
+
+    if( xz.x == match.x && xz.z == match.z && xz.y == propsedY){
+      is_match = true;
+
+      // console.log( 'match', data.children[0].parent.name);
+      return is_match;
+    }
+
+
+  });
+  console.log( "match?:", is_match );
+  return is_match;
+}
+
+function compare(all, current) {
+
+for (let i = 0; i < all.length; i++) {
+  if (all[i] != current.parent) {
+    const A1 = all[i].children[0].position;
+    let selectedCubePos = current.position;
+
+    if (A1.x === selectedCubePos.x && A1.z === selectedCubePos.z && A1.y === selectedCubePos.y) {
+      current.position.y = (Math.round(current.position.y + 1)) / 1.05;
+    }
+    selectedCubePos = current.position;
+    if (selectedCubePos.y > 0 && (A1.x != selectedCubePos.x && A1.z != selectedCubePos.z)) {
+      // console.log("AIR CUBE DOWN");
+      let propsedY = (Math.round(current.position.y - 1)) / 1.05;
+
+      let is_match = getXZCompare( all, selectedCubePos, propsedY );
+      if(  is_match === false ){
+        current.position.y = propsedY;
+        // console.log( 'Moving down!!', `is_match: ${is_match}`, all[i].children[0].parent.name );
+
+      }else if( is_match === 2 ){
+        current.position.x = Math.round(current.position.x+1);
+        // console.log( 'Moving sideways!!', `is_match: ${is_match}`,  all[i].children[0].parent.name );
+      }
+
+
+
+      // selectedCubePos = current.position;
+
+
+    }
+
+  }
+}
+
+}
+
+// function compare(all, current) {
+//   for (let i = 0; i < all.length; i++) {
+//     if (all[i] != current.parent) {
+//       const A1 = all[i].children[0].position;
+//       const A2 = current.position;
+//       // console.log(A1.x, A1.y, A1.z, "FROM ALL CUBES");
+//       // console.log(A2.x, A2.y, A2.z, "FROM CURRENT CUBE");
+//       if (A1.x === A2.x && A1.z === A2.z && A1.y === A2.y) {
+//         current.position.y = (Math.round(current.position.y + 1)) / 1.05;
+//       }
+
+//       if (A2.y > 0 && (A1.x != A2.x && A1.z != A2.z)) {
+//         console.log("AIR CUBE DOWN");
+//         current.position.y = (Math.round(current.position.y - 1)) / 1.05;
+//       }
+//     }
+//   }
+// }
+
 
 if (WP_CURRENT_USER_ROLE === BUSINESS_CUSTOMER) {
   jQuery("#requestOffer").html(REQUEST_AN_OFFER);
@@ -757,44 +1141,47 @@ function handleRequestOfferClick() {
 
     jQuery("#productDetailsModal").modal("show");
 
-    let isRequestInProgress = false;
-    function sendRequest() {
-      if (isRequestInProgress) {
-        return;
-      }
-      isRequestInProgress = true;
+    isRequestInProgress = false;
 
-      jQuery.ajax({
-        url: '/wp-admin/admin-ajax.php',
-        type: "POST",
-        cache: false,
-        data: {
-          action: "send_request",
-          products: busniess_cart_info,
-          note: jQuery("#exampleFormControlTextarea1").val(),
-        },
-        success: function (response) {
-          jQuery("#productDetailsModal").modal("hide");
-          if (response.success) {
-            showAlert("alert-success-1", 4000);
-          }
-        },
-        error: function (error) {
-          showAlert("alert-error-1", 4000);
-        },
-        complete: function () {
-          isRequestInProgress = false;
-          jQuery("#productDetailsTable").empty();
-          jQuery("#sendRequestButton").off("click", sendRequest);
-        }
-      });
-    }
-    jQuery("#sendRequestButton").on("click", sendRequest);
 
   } else {
     jQuery("#requestOffer").prop("disabled", true);
   }
 }
+
+function sendRequest() {
+  if (isRequestInProgress) {
+    return;
+  }
+  isRequestInProgress = true;
+
+  jQuery.ajax({
+    url: '/wp-admin/admin-ajax.php',
+    type: "POST",
+    cache: false,
+    data: {
+      action: "send_request",
+      products: busniess_cart_info,
+      note: jQuery("#exampleFormControlTextarea1").val(),
+    },
+    success: function (response) {
+      jQuery("#productDetailsModal").modal("hide");
+      jQuery("#exampleFormControlTextarea1").val("");
+      if (response.success) {
+        showAlert("alert-success-1", 4000);
+      }
+    },
+    error: function (error) {
+      showAlert("alert-error-1", 4000);
+    },
+    complete: function () {
+      isRequestInProgress = false;
+      // jQuery("#productDetailsTable").empty();
+      // jQuery("#sendRequestButton").off("click", sendRequest);
+    }
+  });
+}
+jQuery("#sendRequestButton").on("click", sendRequest);
 
 function handleAddToCartClick() {
   var productsToAddToCart = [];
@@ -866,5 +1253,5 @@ jQuery("#requestOffer").click(function () {
 
 
 
-// createFloor();
+createFloor();
 animate();

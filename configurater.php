@@ -41,9 +41,14 @@ function get_wp_roles()
 
 function get_product_data()
 {
+	$current_language = ICL_LANGUAGE_CODE;
+
   $args = array(
     'post_type' => 'product',
     'posts_per_page' => -1,
+    'orderby' => 'title',
+    'order' => 'ASC',
+    'lang' => $current_language,
   );
 
   $products = get_posts($args);
@@ -134,9 +139,10 @@ function get_product_data()
       'connecters' => get_post_meta($product->ID, 'no_of_cusions', 'true'),
       'seatcussions' => get_post_meta($product->ID, 'no_of_seatcusions', 'true'),
       'price' => $product_obj->get_price(),
+      'show_in_configurator' => get_post_meta($product->ID, 'show_in_configurator', 'true') === '1' ? true : false,
+      'language' => apply_filters('wpml_element_language_code', null, array('element_id' => $product->ID, 'element_type' => 'product')),
     );
   }
-
   return $product_data;
 }
 
@@ -169,6 +175,7 @@ function my_threejs_plugin_output()
     <meta charset="utf-8" />
     <link rel="shortcut icon" />
     <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__); ?>css/style.css?v=<?= time() ?>" />
+    <script>var _CONFIGURATOR_SETTINGS = {};</script>
   </head>
 
   <body>
@@ -252,17 +259,17 @@ function my_threejs_plugin_output()
           </div>
           <div class="modal-body p-5">
             <div class="table-responsive">
-            <table class="table table-bordered border border-1 border-gray">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Varient Color with Quantity</th>
-                </tr>
-              </thead>
-              <tbody id="productDetailsTable">
-                <!-- Product details will be added here dynamically -->
-              </tbody>
-            </table>
+              <table class="table table-bordered border border-1 border-gray">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Varient Color with Quantity</th>
+                  </tr>
+                </thead>
+                <tbody id="productDetailsTable">
+                  <!-- Product details will be added here dynamically -->
+                </tbody>
+              </table>
             </div>
 
             <div class="py-5">
@@ -278,14 +285,14 @@ function my_threejs_plugin_output()
     </div>
 
     <div id="requestAlert1" class="alert-success-1">
-        Request sent successfully.
+      Request sent successfully.
     </div>
     <div id="requestAlert1" class="alert-error-1">
-        Failed to send request.
+      Failed to send request.
     </div>
 
     <div id="requestAlert1" class="alert-cart-error-1">
-        Failed to add in cart.
+      Failed to add in cart.
     </div>
 
 
@@ -306,6 +313,7 @@ function my_threejs_plugin_output()
       var WP_CURRENT_USER_ROLE = <?= json_encode($current_user_role) ?>;
       var WP_DRECO_PATH = '<?php echo plugin_dir_url(__FILE__); ?>libs/draco/gltf/';
       var ALL_DATA = {};
+      var CONFIGURATOR_ENG = {};
     </script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/constants.js?v=<?= time() ?>"></script>
     <script type="module" src="<?php echo plugin_dir_url(__FILE__); ?>js/configurater.js?v=<?= time() ?>"></script>

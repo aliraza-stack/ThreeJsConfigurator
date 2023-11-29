@@ -9,18 +9,18 @@ CubeModel.init_cube = function (cubex) {
         <div>
             <div id="cubex-variants-${cubex.id}" class="d-flex">
                 <div class="left-side">
-                    <div class="title">${cubex.title} <div id="cube_counters_${cubex.id}" class="cube_counters">0</div></div>
+                    <div class="title">${cubex.title} (<div id="cube_counters_${cubex.id}" class="cube_counters">0</div>)</div>
                     <span class="cubeX__tooltiptext">Click to Add</span>
                     <div class="">
                         <div class="image-container">
                             <img id="Textures-${cubex.id}" src='${cubex.image}' alt="${cubex.title}" data-model-url="${cubex.model_url}" data-product-id="${cubex.id}" data-slug="" class='cubeImage'>
                             <div class="loading-spinner">
-                                <i class="fa fa-spinner fs-1 text-dark animatio_spin" aria-hidden="true"></i>
+                                <i class="fa fa-spinner fs-2 text-dark animatio_spin" aria-hidden="true"></i>
                             </div>
                         </div>
                     </div>
                     <div class="cubeX__tooltip">
-                      <img src="http://cubx-store.cybernest.co/wp-content/uploads/2023/10/add-to-cart.png" />
+                      <img id="Textures-tooltip-${cubex.id}" src="http://cubx-store.cybernest.co/wp-content/uploads/2023/10/add-to-cart.png" />
                       </div>
                   </div>
                 <div class="right-side">
@@ -35,79 +35,77 @@ CubeModel.init_cube = function (cubex) {
                 </div>
             </div>
             <div id="other-cubes"></div>
-            <div class="dropdown add-more">
-                <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <img src="https://cubx.cybernest.co/wp-content/uploads/2023/07/plus.png" />
-                </a>
 
-                <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                ${cubex.menu_items}
-                </div>
-            </div>
         </div>
         `;
   selectFirstColors(cubex);
   CubeModel.init_dropdown(cubex);
+  document.getElementById("Textures-" + cubex.id).setAttribute("onload", "hideLoadingSpinner(this)");
+
 };
 CubeModel.init_dropdown = function (cubex) {
-  jQuery(".dropdown-menu").click((e) => {
-    let product = WP_PRODUCTS[e.target.dataset.productId];
+  cubex.menu_items.forEach((item) => {
+    const product = WP_PRODUCTS[item.id];
     let attributes = product.attributes;
+
 
     let colorSelector = "";
     for (let key in attributes) {
       colorSelector += `<div class="selectors">
-      <div>${getAttributeName(key)}</div>
-      <ul data-product-id="${product.id}">`;
+          <div>${getAttributeName(key)}</div>
+          <ul data-product-id="${product.id}" class="${product.tag + " " + key}">`;
       for (let i = 0; i < attributes[key].length; i++) {
         colorSelector += `<li
-        data-slug="${attributes[key][i].slug}"
-        onclick="toggleActive(this)">
-        <span style="background-color: ${attributes[key][i].color};
-        cursor: pointer;">
-        </span>
-        </li>`;
+            data-slug="${attributes[key][i].slug}"
+            data-name="${product.name.slice(-1)}"
+            onclick="toggleActive(this)">
+            <span style="background-color: ${attributes[key][i].color};
+            cursor: pointer;" ></span>
+            </li>`;
       }
       colorSelector += `</ul></div>`;
     }
 
+    // ${product.tag === PTAG ? '0' : ''}
+    // class="config__counter set-id-${product.id}"
+
     const otherCubes = document.getElementById("other-cubes");
     otherCubes.innerHTML += `<div id="cubex-variants-${product.id}" class="d-flex mt-5">
-            <div class="left-side sub__tooltip">
-                <div class="title">${product.name} <div id="cube_counters_${product.id}" class="cube_counters">0</div></div>
-                <span class="cubeX__tooltiptext">Click to Add</span>
-                  <div class="">
-                    <div class="image-container">
-                        <img id="Sub-Textures-${product.id}" data-product-id="${product.id}" src="${product.image}" alt="${product.name}" data-model-url="${product.model_url}" data-slug="" class="sub-cube-images cubeImage">
-                        <div class="loading-spinner">
-                            <i class="fa fa-spinner fs-1 text-dark animatio_spin" aria-hidden="true"></i>
+                <div class="left-side sub__tooltip">
+                    <div class="title">${product.name} (<div id="cube_counters_${product.id}" class="cube_counters">0</div>)</div>
+                    <span class="cubeX__tooltiptext">Click to Add</span>
+                      <div class="">
+                        <div class="image-container">
+                            <img id="Sub-Textures-${product.id}" data-product-id="${product.id}" src="${product.image}" alt="${product.name}" data-model-url="${product.model_url}" data-slug="" class="sub-cube-images cubeImage">
+                            <div class="loading-spinner">
+                                <i class="fa fa-spinner fs-2 text-dark animatio_spin" aria-hidden="true"></i>
+                            </div>
                         </div>
-                    </div>
-                    <div class="cubeX__tooltip">
-                      <img src="http://cubx-store.cybernest.co/wp-content/uploads/2023/10/add-to-cart.png" />
+                        <div class="cubeX__tooltip" >
+                          <img class="Sub-Textures-tooltip" data-product-id="${product.id}" src="http://cubx-store.cybernest.co/wp-content/uploads/2023/10/add-to-cart.png" />
+                          </div>
                       </div>
-                  </div>
-            </div>
-            <div class="right-side">
-                ${colorSelector}
-            </div>
-        </div>`;
+                </div>
+                <div class="right-side">
+                    ${colorSelector}
+                </div>
+            </div>`;
 
     selectFirstColors(product);
-    removeDropdownItem(product);
-  });
+    setsCounter(product)
+    document.getElementById("Sub-Textures-" + product.id).setAttribute("onload", "hideLoadingSpinner(this)");
 
-
-  function getAttributeName(key) {
-    if (key === "pa_connecter-single" || key === "pa_connecter") {
-      return "Connectors";
-    } else if (key === "pa_seatcushion" || key === "pa_seatcushions-single") {
-      return "Seat Cussions";
-    } else if (key === "pa_cube-surface" || key === "pa_o-cube-surface") {
-      return "Cube Surface";
+    function getAttributeName(key) {
+      if (key === "pa_connecter-single" || key === "pa_set_connecters") {
+        return "Connecters";
+      } else if (key === "pa_seatcushions-single" || key === "pa_set_seatcushion") {
+        return "Seatcushions";
+      } else if (key === "pa_cube-surface" || key === "pa_o-cube-surface") {
+        return "Cube Surface";
+      }
+      return "";
     }
-    return "";
-  }
+  });
 };
 
 function selectFirstColors(product) {
@@ -162,47 +160,315 @@ function updateVariantImage(productId) {
 
   imageElement.dataset.modelUrl = matchedVariant ? matchedVariant.gltf_url : product.gltf_url;
   imageElement.dataset.modelUrl2 = matchedVariant ? matchedVariant.gltf_url_2 : product.gltf_url_2;
-
   imageElement.dataset.slug = matchedVariant ? matchedVariant.slug : product.slug;
+
+
+
 
   // Get the image and loading spinner elements
   const image = document.getElementById(`Textures-${productId}`);
   const image2 = document.getElementById(`Sub-Textures-${productId}`);
   var loadingSpinner;
   if (image) {
+    image.src = imageElement.src;
     loadingSpinner = image.nextElementSibling;
   } else {
+    image2.src = imageElement.src;
     loadingSpinner = image2.nextElementSibling;
-  }
-
-  if (image) {
-    image.addEventListener('load', () => {
-      loadingSpinner.style.display = 'none';
-    });
-  } else if (image2) {
-    image2.addEventListener('load', () => {
-      loadingSpinner.style.display = 'none';
-    });
   }
 
   loadingSpinner.style.display = 'block';
 
-  if (image) {
-    image.src = imageElement.src;
-  } else {
-    image2.src = imageElement.src;
-  }
 
 }
 
-
-function removeDropdownItem(product) {
-  const dropdownItem = document.querySelector(
-    ".dropdown-menu [data-product-id='" + product.id + "']"
-  );
-  if (dropdownItem) {
-    dropdownItem.remove();
+function hideLoadingSpinner(image) {
+  const loadingSpinner = image.nextElementSibling;
+  if (loadingSpinner) {
+    loadingSpinner.style.display = 'none';
   }
 }
 
+function setsCounter(product) {
+  jQuery(".Sets.pa_set_seatcushion").each(function () {
+    jQuery(this).find("li").each(function () {
+      var slug = jQuery(this).data("slug");
+      var name = jQuery(this).data("name");
+      var span = jQuery(this).find("span");
+      if (product.category == UCUBE || product.category == "U-Wuerfel") {
+        span.addClass("config__counter fw-bolder set-id-" + product.id);
+        span.text(ALL_DATA.UCUBESETS[slug][name]['seatcushion']);
+      } else {
+        span.addClass("config__counter text-white fw-bolder set-id-" + product.id);
+        span.text(ALL_DATA.OCUBESETS['slug'][name]['seatcushion']);
+      }
+    });
+  })
+  jQuery(".Sets.pa_set_connecters").each(function () {
+    jQuery(this).find("li").each(function () {
+      var slug = jQuery(this).data("slug");
+      var name = jQuery(this).data("name");
+      var span = jQuery(this).find("span");
+      if (product.category == UCUBE || product.category == "U-Wuerfel") {
+        span.addClass("config__counter fw-bolder set-id-" + product.id);
+        span.text(ALL_DATA.UCUBESETS[slug][name]['connecter']);
+      } else {
+        span.addClass("config__counter text-white fw-bolder set-id-" + product.id);
+        span.text(ALL_DATA.OCUBESETS['slug'][name]['connecter']);
+      }
+    });
+  })
+}
 
+
+
+// var counter_arrays = {};
+
+// jQuery(document).ready(function () {
+//   var sets = jQuery(".Sets.pa_set_connecters");
+
+//   sets.each(function () {
+//     var product = WP_PRODUCTS[jQuery(this).data("product-id")];
+//     jQuery(this).find("li").each(function () {
+//       var span = jQuery(this).find("span");
+//       span.addClass("config__counter set-id-" + product.id);
+//       span.text("0");
+//     });
+
+//     // add a minus button to each li inside ul with class "Sets" and "pa_set_connecters"
+//     var minusButton = jQuery("<span class='minus-button' data-product-id='" + product.id + "'><i class='fa fa-minus' aria-hidden='true'></i></span>");
+//     minusButton.addClass("set-minus-" + product.id);
+//     minusButton.css({
+//       margin: "10px 0px 0px 10px",
+//       fontSize: "20px",
+//       opacity: 0.5,
+//       cursor: "not-allowed",
+//       width: "auto",
+//     });
+
+//     // add a plus button to each li inside ul with class "Sets" and "pa_set_connecters"
+//     var plusButton = jQuery("<span class='plus-button' data-product-id='" + product.id + "'><i class='fa fa-plus' aria-hidden='true'></i></span>");
+//     plusButton.addClass("set-plus-" + product.id);
+//     plusButton.css({
+//       margin: "10px 0px 0px 10px",
+//       fontSize: "20px",
+//       cursor: "pointer",
+//       width: "auto",
+//     });
+
+//     // append the minus and plus button to the ul with class "Sets" and "pa_set_connecters"
+//     jQuery(this).append(
+//       minusButton,
+//       plusButton
+//     );
+
+//     plusButton.click(function (e) {
+//       e.preventDefault();
+//       var counterId = jQuery(this).data("product-id");
+//       var counters = jQuery(".Sets.pa_set_connecters li .config__counter.set-id-" + counterId);
+//       var url = jQuery("")
+//       const maxCount = product.connecters;
+//       var activeCounter = jQuery(".Sets.pa_set_connecters li.active .config__counter.set-id-" + counterId);
+//       var count = parseInt(activeCounter.text()) + 1;
+
+//       var sumCounters = 0;
+//       counters.each(function () {
+//         sumCounters += parseInt(jQuery(this).text());
+//       });
+
+//       var remaningCount = maxCount - sumCounters;
+
+//       if (remaningCount > 0) {
+//         activeCounter.text(count);
+//         setConfiguratorEng(counterId, 'connecters', jQuery('.Sets.pa_set_connecters li.active').data('slug'), count, maxCount);
+//       }
+
+//       if (remaningCount == 1) {
+//         jQuery(".Sets.pa_set_connecters .plus-button.set-plus-" + product.id).css({
+//           opacity: 0.5,
+//           cursor: "not-allowed",
+//         });
+//       }
+
+//       if (remaningCount <= (maxCount + 1)) {
+//         jQuery(".Sets.pa_set_connecters .minus-button.set-minus-" + product.id).css({
+//           opacity: 1,
+//           cursor: "pointer",
+//         });
+//       }
+
+//     });
+
+//     minusButton.click(function (e) {
+//       e.preventDefault();
+//       var counterId = jQuery(this).data("product-id");
+//       var counters = jQuery(".Sets.pa_set_connecters li .config__counter.set-id-" + counterId);
+//       const maxCount = product.connecters;
+
+//       var activeCounter = jQuery(".Sets.pa_set_connecters li.active .config__counter.set-id-" + product.id);
+//       var count = parseInt(activeCounter.text()) - 1;
+//       if (count >= 0) {
+//         activeCounter.text(count);
+//         setConfiguratorEng(counterId, 'connecters', jQuery('.Sets.pa_set_connecters li.active').data('slug'), count, maxCount);
+//       }
+
+//       var sumCounters = 0;
+//       counters.each(function () {
+//         sumCounters += parseInt(jQuery(this).text());
+//       }
+//       );
+
+//       var remaningCount = maxCount - sumCounters;
+
+//       if (remaningCount > 0) {
+//         jQuery(".Sets.pa_set_connecters .plus-button.set-plus-" + product.id).css({
+//           opacity: 1,
+//           cursor: "pointer",
+//         });
+//       }
+//       if (remaningCount == maxCount) {
+//         jQuery(".Sets.pa_set_connecters .minus-button.set-minus-" + product.id).css({
+//           opacity: 0.5,
+//           cursor: "not-allowed",
+//         });
+//       }
+//     });
+
+//   });
+// });
+
+
+// jQuery(document).ready(function () {
+//   var sets = jQuery(".Sets.pa_set_seatcushion");
+
+//   sets.each(function () {
+//     var product = WP_PRODUCTS[jQuery(this).data("product-id")];
+//     jQuery(this).find("li").each(function () {
+//       var span = jQuery(this).find("span");
+//       span.addClass("config__counter set-id-" + product.id);
+//       span.text("0");
+//     });
+
+//     // add a minus button to each li inside ul with class "Sets" and "pa_set_seatcushion"
+//     var minusButton = jQuery("<span class='minus-button' data-product-id='" + product.id + "'><i class='fa fa-minus' aria-hidden='true'></i></span>");
+//     minusButton.addClass("set-minus-" + product.id);
+//     minusButton.css({
+//       margin: "10px 0px 0px 10px",
+//       fontSize: "20px",
+//       opacity: 0.5,
+//       cursor: "not-allowed",
+//       width: "auto",
+//     });
+
+//     // add a plus button to each li inside ul with class "Sets" and "pa_set_seatcushion"
+//     var plusButton = jQuery("<span class='plus-button' data-product-id='" + product.id + "'><i class='fa fa-plus' aria-hidden='true'></i></span>");
+//     plusButton.addClass("set-plus-" + product.id);
+//     plusButton.css({
+//       margin: "10px 0px 0px 10px",
+//       fontSize: "20px",
+//       cursor: "pointer",
+//       width: "auto",
+//     });
+
+//     // append the minus and plus button to the ul with class "Sets" and "pa_set_seatcushion"
+//     jQuery(this).append(
+//       minusButton,
+//       plusButton
+//     );
+
+//     plusButton.click(function (e) {
+//       e.preventDefault();
+//       var counterId = jQuery(this).data("product-id");
+//       var counters = jQuery(".Sets.pa_set_seatcushion li .config__counter.set-id-" + counterId);
+//       const maxCount = product.seatcussions;
+//       var activeCounter = jQuery(".Sets.pa_set_seatcushion li.active .config__counter.set-id-" + counterId);
+//       var count = parseInt(activeCounter.text()) + 1;
+
+//       var sumCounters = 0;
+//       counters.each(function () {
+//         sumCounters += parseInt(jQuery(this).text());
+//       });
+
+//       var remaningCount = maxCount - sumCounters;
+
+//       if (remaningCount > 0) {
+//         activeCounter.text(count);
+//         setConfiguratorEng(counterId, 'seatcushion', jQuery('.Sets.pa_set_seatcushion li.active').data('slug'), count, maxCount);
+//       }
+
+//       if (remaningCount == 1) {
+//         jQuery(".Sets.pa_set_seatcushion .plus-button.set-plus-" + product.id).css({
+//           opacity: 0.5,
+//           cursor: "not-allowed",
+//         });
+//       }
+
+//       if (remaningCount <= (maxCount + 1)) {
+//         jQuery(".Sets.pa_set_seatcushion .minus-button.set-minus-" + product.id).css({
+//           opacity: 1,
+//           cursor: "pointer",
+//         });
+//       }
+
+//     });
+
+
+
+//     minusButton.click(function (e) {
+//       e.preventDefault();
+//       var counterId = jQuery(this).data("product-id");
+//       var counters = jQuery(".Sets.pa_set_seatcushion li .config__counter.set-id-" + counterId);
+//       const maxCount = product.connecters;
+
+//       var activeCounter = jQuery(".Sets.pa_set_seatcushion li.active .config__counter.set-id-" + product.id);
+
+//       var count = parseInt(activeCounter.text()) - 1;
+//       if (count >= 0) {
+//         activeCounter.text(count);
+//         setConfiguratorEng(counterId, 'seatcushion', jQuery('.Sets.pa_set_seatcushion li.active').data('slug'), count, maxCount);
+//       }
+
+//       var sumCounters = 0;
+//       counters.each(function () {
+//         console.log(jQuery(this).data());
+//         sumCounters += parseInt(jQuery(this).text());
+//       }
+//       );
+
+//       var remaningCount = maxCount - sumCounters;
+
+//       if (remaningCount > 0) {
+//         jQuery(".Sets.pa_set_seatcushion .plus-button.set-plus-" + product.id).css({
+//           opacity: 1,
+//           cursor: "pointer",
+//         });
+//       }
+//       if (remaningCount == maxCount) {
+//         jQuery(".Sets.pa_set_seatcushion .minus-button.set-minus-" + product.id).css({
+//           opacity: 0.5,
+//           cursor: "not-allowed",
+//         });
+//       }
+
+
+//     });
+
+//   });
+// });
+
+
+// function setConfiguratorEng(counterId, type, slug, count, maxCount) {
+//   if (undefined == CONFIGURATOR_ENG[counterId]) {
+//     CONFIGURATOR_ENG[counterId] = {};
+//   }
+//   if (undefined == CONFIGURATOR_ENG[counterId][type]) {
+//     CONFIGURATOR_ENG[counterId][type] = {};
+//   }
+//   if (undefined == CONFIGURATOR_ENG[counterId][type][slug]) {
+//     CONFIGURATOR_ENG[counterId][type][slug] = count;
+//     CONFIGURATOR_ENG[counterId][type].maxCount = maxCount
+//   }
+//   else {
+//     CONFIGURATOR_ENG[counterId][type][slug] = count; //{ count: count, maxCount: maxCount }
+//   }
+// }
