@@ -20,7 +20,7 @@ CubeModel.init_cube = function (cubex) {
                         </div>
                     </div>
                     <div class="cubeX__tooltip">
-                      <img id="Textures-tooltip-${cubex.id}" src="http://cubx-store.cybernest.co/wp-content/uploads/2023/10/add-to-cart.png" />
+                      <img id="Textures-tooltip-${cubex.id}" data-product-id="${cubex.id}" src="/wp-content/uploads/2023/10/add-to-cart.png" />
                       </div>
                   </div>
                 <div class="right-side">
@@ -82,7 +82,7 @@ CubeModel.init_dropdown = function (cubex) {
                             </div>
                         </div>
                         <div class="cubeX__tooltip" >
-                          <img class="Sub-Textures-tooltip" data-product-id="${product.id}" src="http://cubx-store.cybernest.co/wp-content/uploads/2023/10/add-to-cart.png" />
+                          <img class="Sub-Textures-tooltip" data-product-id="${product.id}" src="/wp-content/uploads/2023/10/add-to-cart.png" />
                           </div>
                       </div>
                 </div>

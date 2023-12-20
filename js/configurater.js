@@ -32,6 +32,7 @@ var controlPressed = false;
 
 var intersects = [];
 var allCubes = [];
+
 var allSubCubes = [];
 var cubeCounter = 0;
 var clickedSlug = null;
@@ -49,6 +50,7 @@ var scale = { x: 50, y: 2, z: 50 };
 var model_url;
 var model_url2;
 
+var DOMAIN_URL = 'http://cubx-store.cybernest.co';
 
 // U CUBE SETS ARRAY
 var UCUBESETS = {
@@ -124,24 +126,24 @@ var UCUBESETS = {
   },
   'URL': {
     'purple - purple': {
-      connecter_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/U_cube_purple_connector.gltf',
-      seatcusion_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/U_cube_purple_purple-cussion.gltf',
+      connecter_url: DOMAIN_URL + '/wp-content/uploads/2023/10/U_cube_purple_connector.gltf',
+      seatcusion_url: `${DOMAIN_URL}/wp-content/uploads/2023/10/U_cube_purple_purple-cussion.gltf`,
     },
     'green - green': {
-      connecter_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/U_cube_green_connector.gltf',
-      seatcusion_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/U_cube_green_green-cussion.gltf',
+      connecter_url: DOMAIN_URL + '/wp-content/uploads/2023/10/U_cube_green_connector.gltf',
+      seatcusion_url: `${DOMAIN_URL}/wp-content/uploads/2023/10/U_cube_green_green-cussion.gltf`,
     },
     'yellow - yellow': {
-      connecter_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/U_cube_yellow_connector.gltf',
-      seatcusion_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/U_cube_yellow_yellow-cussion.gltf',
+      connecter_url: `${DOMAIN_URL}/wp-content/uploads/2023/10/U_cube_yellow_connector.gltf`,
+      seatcusion_url: `${DOMAIN_URL}/wp-content/uploads/2023/10/U_cube_yellow_yellow-cussion.gltf`,
     },
     'blue - blue': {
-      connecter_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/11/U_cube_blue_connector.gltf',
-      seatcusion_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/U_cube_blue_blue-cussion.gltf',
+      connecter_url: `${DOMAIN_URL}/wp-content/uploads/2023/11/U_cube_blue_connector.gltf`,
+      seatcusion_url: `${DOMAIN_URL}/wp-content/uploads/2023/10/U_cube_blue_blue-cussion.gltf`,
     },
     'gray - gray': {
-      connecter_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/U_cube_gray_connector.gltf',
-      seatcusion_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/U_cube_gray_gray-cussion.gltf',
+      connecter_url: `${DOMAIN_URL}/wp-content/uploads/2023/10/U_cube_gray_connector.gltf`,
+      seatcusion_url: `${DOMAIN_URL}wp-content/uploads/2023/10/U_cube_gray_gray-cussion.gltf`,
     },
   }
 };
@@ -224,20 +226,20 @@ var OCUBESETS = {
   },
   'URL': {
     'black - black': {
-      connector_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/O_cube_black-connector.gltf',
-      seatcusion_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/O_cube_black_black.gltf',
+      connector_url: `${DOMAIN_URL}/wp-content/uploads/2023/10/O_cube_black-connector.gltf`,
+      seatcusion_url: `${DOMAIN_URL}/wp-content/uploads/2023/10/O_cube_black_black.gltf`,
     },
     'copper - black': {
-        connector_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/O_cube_copper-connector.gltf',
-        seatcusion_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/O_cube_copper_black.gltf',
+        connector_url: `${DOMAIN_URL}/wp-content/uploads/2023/10/O_cube_copper-connector.gltf`,
+        seatcusion_url: `${DOMAIN_URL}/wp-content/uploads/2023/10/O_cube_copper_black.gltf`,
     },
     'silver - black': {
-        connector_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/O_cube_silver-connector.gltf',
-        seatcusion_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/O_cube_silver_black.gltf',
+        connector_url: `${DOMAIN_URL}/wp-content/uploads/2023/10/O_cube_silver-connector.gltf`,
+        seatcusion_url: `${DOMAIN_URL}/wp-content/uploads/2023/10/O_cube_silver_black.gltf`,
     },
     'bronze - black': {
-        connector_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/O_cube_browne-connector.gltf',
-        seatcusion_url: 'http://cubx-store.cybernest.co/wp-content/uploads/2023/10/O_cube_brownze_black.gltf',
+        connector_url: `${DOMAIN_URL}/wp-content/uploads/2023/10/O_cube_browne-connector.gltf`,
+        seatcusion_url: `${DOMAIN_URL}/wp-content/uploads/2023/10/O_cube_brownze_black.gltf`,
     },
   }
 }
@@ -426,7 +428,7 @@ function cloneCube(cubex) {
     model_url = imageElement.dataset.modelUrl;
     model_url2 = imageElement.dataset.modelUrl2;
   }
-  console.log(model_url, model_url2);
+  // console.log(model_url, model_url2);
 
   const loader = new GLTFLoader(loading);
   const dracoLoader = new DRACOLoader();
@@ -462,7 +464,6 @@ function cloneCube(cubex) {
             let mi_url = ALL_DATA.UCUBESETS.URL[data];
             let threedUrl = cubeCounter >= uCubeData.seatcushion ? mi_url['connecter_url'] : mi_url['seatcusion_url'];
             var isSeatcushion = cubeCounter >= uCubeData.seatcushion ? false : true;
-            console.log("cubex",cubex);
             cubePromises.push(loadAndAddCube(loader, threedUrl, cubex, i++, isSeatcushion));
           }
         }
@@ -470,7 +471,8 @@ function cloneCube(cubex) {
           for( let cubeCounter = 0; uCubeData.seatcushion > cubeCounter; cubeCounter++ ){
             let mi_url = ALL_DATA.UCUBESETS.URL[data];
             let threedUrl = cubeCounter >= uCubeData.connector ? mi_url['connecter_url'] : mi_url['seatcusion_url'];
-            cubePromises.push(loadAndAddCube(loader, threedUrl, cubex, i++));
+            var isSeatcushion = cubeCounter >= uCubeData.seatcushion ? false : true;
+            cubePromises.push(loadAndAddCube(loader, threedUrl, cubex, i++, isSeatcushion));
           }
         }
         });
@@ -480,27 +482,38 @@ function cloneCube(cubex) {
           const slugLast = cubex.title.split("-")[1];
           const uCubeData = ALL_DATA.OCUBESETS[singleSlug][slugLast];
           console.log(uCubeData, data);
-       if( uCubeData.connecter >= uCubeData.seatcushion ){
-          for( let cubeCounter = 0; uCubeData.connecter > cubeCounter; cubeCounter++ ){
-            let mi_url = ALL_DATA.OCUBESETS.URL[data];
-            let threedUrl = cubeCounter >= uCubeData.seatcushion ? mi_url['seatcusion_url'] : mi_url['connecter_url'];
-            cubePromises.push(loadAndAddCube(loader, threedUrl, cubex, i++));
-          }
-        }else if( uCubeData.connecter <= uCubeData.seatcushion ){
-          for( let cubeCounter = 0; uCubeData.seatcushion > cubeCounter; cubeCounter++ ){
-            let mi_url = ALL_DATA.OCUBESETS.URL[data];
-            let threedUrl = cubeCounter >= uCubeData.connector ? mi_url['connecter_url'] : mi_url['seatcusion_url'];
-            cubePromises.push(loadAndAddCube(loader, threedUrl, cubex, i++));
-          }
-        }
+           if( uCubeData.connecter >= uCubeData.seatcushion ){
+              for( let cubeCounter = 0; uCubeData.connecter > cubeCounter; cubeCounter++ ){
+                let mi_url = ALL_DATA.OCUBESETS.URL[data];
+                let threedUrl = cubeCounter >= uCubeData.seatcushion ? mi_url['connector_url'] : mi_url['seatcusion_url'];
+                console.log("threedUrl-1", threedUrl)
+                var isSeatcushion = cubeCounter >= uCubeData.seatcushion ? false : true;
+                cubePromises.push(loadAndAddCube(loader, threedUrl, cubex, i++, isSeatcushion));
+              }
+            }else if( uCubeData.connecter <= uCubeData.seatcushion ){
+              for( let cubeCounter = 0; uCubeData.seatcushion > cubeCounter; cubeCounter++ ){
+                let mi_url = ALL_DATA.OCUBESETS.URL[data];
+                let threedUrl = cubeCounter >= uCubeData.seatcushion ? mi_url['connector_url'] : mi_url['seatcusion_url'];
+                console.log("threedUrl-else", threedUrl)
+                var isSeatcushion = cubeCounter >= uCubeData.seatcushion ? false : true;
+                cubePromises.push(loadAndAddCube(loader, threedUrl, cubex, i++, isSeatcushion));
+              }
+            }
         });
       }
     } else {
-      cubePromises.push(loadAndAddCube(loader, model_url, cubex, i));
+
+      var isSeatcushion = WP_PRODUCTS[cubex.id].seatcushions == "1" ? true : false;
+      if( isSeatcushion == false ){
+        isSeatcushion = WP_PRODUCTS[cubex.id].name.toLowerCase() == "Seatcushion".toLowerCase() ? true : false;
+      }
+      // console.log( "isSeatcushion: " , isSeatcushion, cubex.title, cubex.id );
+      cubePromises.push(loadAndAddCube(loader, model_url, cubex, i, isSeatcushion));
     }
 
   Promise.all(cubePromises).then((cubes) => {
     cubes.forEach((cube, index) => {
+      // console.log(cube, index, numCubesToAdd);
       positionCube(cube, index, numCubesToAdd);
     });
   });
@@ -509,7 +522,7 @@ function cloneCube(cubex) {
 function loadAndAddCube(loader, url, cubex, index, isSeatcushion) {
   return new Promise((resolve) => {
     loader.load(url, (gltf) => {
-      console.log( 'modelURL: ', url, index, cubex )
+      // console.log( 'modelURL: ', url, index, cubex )
       const cube = gltf.scene.clone();
       const products = WP_PRODUCTS[cubex.id];
       cube.userData.draggable = false;
@@ -534,7 +547,6 @@ function loadAndAddCube(loader, url, cubex, index, isSeatcushion) {
 }
 
 function positionCube(cube, index, numCubesToAdd) {
-  console.log(cube, index, numCubesToAdd);
   const spacingX = -1;
   const spacingZ = -1;
 
@@ -620,7 +632,7 @@ function deleteSelectedCube() {
       if (totalQuenty > 0) {
         totalQuenty = totalQuenty - 1;
       }
-      console.log(totalQuenty);
+
       const slug = busniess_cart_info[selectedCube.parent.userData.slug];
       console.log(slug);
       if (slug) {
@@ -647,7 +659,7 @@ function deleteSelectedCube() {
       if (totalQuenty > 0) {
         totalQuenty = totalQuenty - 1;
       }
-      console.log(totalQuenty);
+
       const slug = busniess_cart_info[selectedCube.userData.slug];
       console.log(slug);
       if (slug) {
@@ -776,7 +788,8 @@ function switchCubeModel(cubex) {
   jQuery("#Textures-" + cubex.id + ', #Textures-tooltip-' + cubex.id).click(function (e) {
     cloneCube(cubex);
     allData("cubex", cubex);
-    clickedSlug = e.target.dataset.slug;
+    clickedSlug = jQuery( `#Textures-${cubex.id}` ).data('slug');
+    // clickedSlug = e.target.dataset.slug;
     allData("clickedSlug", clickedSlug);
   });
 
@@ -805,7 +818,8 @@ function switchCubeModel(cubex) {
 
 jQuery(document).on('click', ".sub-cube-images, .Sub-Textures-tooltip", function (e) {
   var productId = jQuery(e.target).data("product-id");
-  const slug = jQuery(e.target).data("slug");
+  const slug = jQuery( `.sub-cube-images`).data("slug");
+  console.log(slug);
   allSubCubes.forEach((subProduct) => {
     if (subProduct.id === productId) {
       clickedSlug = slug;
@@ -977,6 +991,7 @@ function getXZCompare( all, selected, propsedY ){
   let is_match = false;
   let match = selected;
   all.forEach(function(data){
+    // console.log(data);
     let xz = data.children[0].position;
     // console.log( 'match', xz.x, xz.y, xz.z, '=', match.x, propsedY, match.z, );
     // console.log('susion: ', data.children[0].parent.isSeatcushion);
@@ -1076,11 +1091,12 @@ jQuery("#uCube").html(UCUBE);
 jQuery("#oCube").html(OCUBE);
 
 document.body.addEventListener('click', function (event) {
-  if (event.target.tagName === 'IMG' && event.target.hasAttribute('data-product-id')) {
+  if (event.target.tagName.toLowerCase() === 'img' && event.target.hasAttribute('data-product-id') ) {
     const productId = event.target.getAttribute('data-product-id');
-    const currentCount = parseInt(event.target.getAttribute('data-count')) || 0;
-    event.target.setAttribute('data-count', currentCount + 1);
-    let productQuantity = parseInt(event.target.getAttribute('data-count'));
+    const currentCount = parseInt( jQuery(`#Textures-${productId}`).data('count') ) || 0;
+    let productQuantity = parseInt(currentCount + 1);
+    jQuery(`#Textures-${productId}`).data('count', productQuantity);
+    event.target.setAttribute('data-count', productQuantity);
     eachProductQuantity[productId] = productQuantity;
     totalQuenty = totalQuenty + 1;
   }
@@ -1107,7 +1123,9 @@ function handleRequestOfferClick() {
   });
   for (const key in busniess_cart_info) {
     let product = busniess_cart_info[key];
+    console.log(product.slug);
     var product_slug = product.slug.toUpperCase();
+
     var color = product_slug.split(' - ');
     var set_color = {};
     if (product.type === UCUBE || product.type === OCUBE) {
@@ -1176,24 +1194,28 @@ function sendRequest() {
     },
     complete: function () {
       isRequestInProgress = false;
-      // jQuery("#productDetailsTable").empty();
-      // jQuery("#sendRequestButton").off("click", sendRequest);
+      jQuery("#productDetailsTable").empty();
+      jQuery("#sendRequestButton").off("click", sendRequest);
     }
   });
 }
 jQuery("#sendRequestButton").on("click", sendRequest);
 
 function handleAddToCartClick() {
+  console.log( "Cart execution: ", totalQuenty );
   var productsToAddToCart = [];
   var productDetailsMap = {};
-
+  const quantity = totalQuenty;
+  console.log( "Cart items: ",  allCubes.length , quantity);
   allCubes.forEach((product) => {
-    const quantity = totalQuenty;
+
     if (quantity > 0) {
       const productName = product.userData.type;
+      console.log(product.userData);
       const variants = WP_PRODUCTS[product.userData.id].variants;
       const varient_slug = product.userData.slug;
       const varient = variants.filter((varient) => varient.slug === varient_slug)[0];
+      console.log(varient_slug);
 
       if (productDetailsMap[productName] && productDetailsMap[productName].varientId === varient.id) {
         productDetailsMap[productName].quantity = eachProductQuantity[product.userData.id];
@@ -1216,7 +1238,7 @@ function handleAddToCartClick() {
       }
 
       productsToAddToCart.push({ ...productDetailsMap[productName] });
-
+      console.log("productsToAddToCart: ", productsToAddToCart.length);
     }
   });
   if (productsToAddToCart.length > 0) {
@@ -1241,10 +1263,12 @@ function handleAddToCartClick() {
   }
 }
 
-jQuery("#requestOffer").click(function () {
+jQuery("#requestOffer").on('click', function () {
+  console.log( "Add to Cart", WP_CURRENT_USER_ROLE );
   if (WP_CURRENT_USER_ROLE === BUSINESS_CUSTOMER) {
     handleRequestOfferClick();
   } else {
+    console.log( "handleAddToCartClick: " );
     handleAddToCartClick();
   }
 });
