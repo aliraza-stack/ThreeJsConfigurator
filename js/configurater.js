@@ -4,7 +4,7 @@ var plane = new THREE.Plane();
 var raycaster = new THREE.Raycaster();
 var clickMouse = new THREE.Vector2();
 var mouseMove = new THREE.Vector2();
-var axesHelper = new THREE.AxesHelper(5);
+// var axesHelper = new THREE.AxesHelper(5);
 
 var mouse = new THREE.Vector2();
 var pNormal = new THREE.Vector3(0, 1, 0);
@@ -42,7 +42,7 @@ var busniess_cart_info = {};
 let isRequestInProgress = false;
 
 var cube;
-// var GUI = new dat.GUI();
+// var GUI = new dat.GUI(); //Debugger
 var cubePosition = { x: 0, y: 0, z: 0 };
 var mousePreviousPosition = { x: 0, y: 0, };
 var pos = { x: 0, y: -1, z: 0 };
@@ -50,8 +50,14 @@ var scale = { x: 50, y: 2, z: 50 };
 var model_url;
 var model_url2;
 
-var DOMAIN_URL = 'http://cubx-store.cybernest.co';
+var OBJECT_FACE = {};
 
+var DOMAIN_URL = 'https://d6734qda5szbb.cloudfront.net';
+// var DOMAIN_URL = '';
+var chrome = navigator.userAgent.search("Chrome") != -1 ? true : false;
+var firefox = navigator.userAgent.search("Firefox") != -1 ? true : false;
+var msie8 = navigator.userAgent.search("MSIE 8.0");
+var msie9 = navigator.userAgent.search("MSIE 9.0");
 // U CUBE SETS ARRAY
 var UCUBESETS = {
   'purple': {
@@ -143,7 +149,7 @@ var UCUBESETS = {
     },
     'gray - gray': {
       connecter_url: `${DOMAIN_URL}/wp-content/uploads/2023/10/U_cube_gray_connector.gltf`,
-      seatcusion_url: `${DOMAIN_URL}wp-content/uploads/2023/10/U_cube_gray_gray-cussion.gltf`,
+      seatcusion_url: `${DOMAIN_URL}/wp-content/uploads/2023/10/U_cube_gray_gray-cussion.gltf`,
     },
   }
 };
@@ -249,13 +255,30 @@ allData("OCUBESETS", OCUBESETS);
 
 
 
+let console_disabled = false;
 
+const nullFunc = function(){};
+console = new Proxy(console, {
+  get(target, prop, receiver){
+    if(prop==='log' && console_disabled){
+      return nullFunc;
+    }
+    return Reflect.get(...arguments)
+  }
+});
 
 
 
 camera = new THREE.PerspectiveCamera(60, width / height, 1, 1000);
 window.camera = camera;
-camera.position.set(0, 5, 11);
+if( firefox ){
+  camera.position.set(0, 0, 10);
+}else{
+  camera.position.set(0, 0, 11);
+}
+camera.lookAt(0, 0, 0);
+
+
 
 const rendererOptions = {
   antialias: true,
@@ -281,8 +304,11 @@ scene = new THREE.Scene();
 
 // PIVOT
 const pivot = new THREE.Group();
+pivot.position.set(0, 0, -1); 
 pivot.add(camera);
 scene.add(pivot);
+
+// console.log(pivot.position);
 
 camera.lookAt(pivot.position);
 
@@ -452,7 +478,9 @@ function cloneCube(cubex) {
   }
 
   let i = 0;
+  let index_override = false;
     if (WP_PRODUCTS[cubex.id].tag === PTAG) {
+      index_override = allCubes.length;
       var uCubeButton = jQuery("button#uCube");
       if (uCubeButton.hasClass("active")) {
         Object.keys(ALL_DATA['UCUBESETS'].URL).forEach((data) => {
@@ -514,7 +542,7 @@ function cloneCube(cubex) {
   Promise.all(cubePromises).then((cubes) => {
     cubes.forEach((cube, index) => {
       // console.log(cube, index, numCubesToAdd);
-      positionCube(cube, index, numCubesToAdd);
+      positionCube(cube, index_override ? (index_override+index): index, numCubesToAdd);
     });
   });
 }
@@ -525,6 +553,7 @@ function loadAndAddCube(loader, url, cubex, index, isSeatcushion) {
       // console.log( 'modelURL: ', url, index, cubex )
       const cube = gltf.scene.clone();
       const products = WP_PRODUCTS[cubex.id];
+      // cube.scale.set(2.5, 2.5, 2.5);
       cube.userData.draggable = false;
       cube.name = cubex.title + "-" + (allCubes.length + 1);
       cube.userData.type = cubex.title;
@@ -537,6 +566,8 @@ function loadAndAddCube(loader, url, cubex, index, isSeatcushion) {
       cube.userData.connectorQuantity = products.connecters === "" ? 0 : parseInt(products.connecters);
       cube.userData.seatcussionQuantity = products.seatcussions === "" ? 0 : parseInt(products.seatcussions);
       cube.isSeatcushion = isSeatcushion;
+      cube.face = 0;
+      cube.userData.rotation = { x: Math.floor(cube.rotation.x), y: Math.floor(cube.rotation.y), z: Math.floor(cube.rotation.z) };
       allCubes.push(cube);
       allData("allCubes", allCubes);
       jQuery("#cube_counters_" + cubex.id).html(allCubes.filter((cube) => cube.userData.id === cubex.id).length);
@@ -605,6 +636,7 @@ function deleteAllCubes() {
     UCUBESETS,
     OCUBESETS,
   };
+  totalQuenty = 0;
   busniess_cart_info = {};
   // update the cube counter
   jQuery(".cube_counters").html(0);
@@ -618,7 +650,7 @@ function deleteAllCubes() {
 jQuery("#deleteCube").on("click", deleteSelectedCube);
 function deleteSelectedCube() {
   for (let i = 0; i < allCubes.length; i++) {
-    console.log(allCubes[i]);
+    // console.log(allCubes[i]);
     if (allCubes[i].children[0] === selectedCube) {
       scene.remove(allCubes[i]);
       allCubes.splice(i, 1);
@@ -634,7 +666,7 @@ function deleteSelectedCube() {
       }
 
       const slug = busniess_cart_info[selectedCube.parent.userData.slug];
-      console.log(slug);
+      // console.log(slug);
       if (slug) {
         if (slug.seatcussionQuantity <= selectedCube.userData.cubesQuantity) {
           var cussionQuantity = slug.seatcussionQuantity - 1;
@@ -661,7 +693,7 @@ function deleteSelectedCube() {
       }
 
       const slug = busniess_cart_info[selectedCube.userData.slug];
-      console.log(slug);
+      // console.log(slug);
       if (slug) {
         if (slug.seatcussionQuantity <= selectedCube.userData.cubesQuantity) {
           var cussionQuantity = slug.seatcussionQuantity - 1;
@@ -818,7 +850,8 @@ function switchCubeModel(cubex) {
 
 jQuery(document).on('click', ".sub-cube-images, .Sub-Textures-tooltip", function (e) {
   var productId = jQuery(e.target).data("product-id");
-  const slug = jQuery( `.sub-cube-images`).data("slug");
+  const slug = jQuery(e.target).data("slug");
+
   console.log(slug);
   allSubCubes.forEach((subProduct) => {
     if (subProduct.id === productId) {
@@ -874,8 +907,19 @@ const getFov = () => {
 
 // rotate single cube 90 degree
 jQuery("#rotateSingleCube").on("click", () => {
-  if (selectedCube) {
-    selectedCube.rotation.y -= Math.PI / 2;
+  // console.log( 'rotate: ', selectedCube );
+  selectedCube.rotation.y -= Math.PI / 2;
+  if( selectedCube && jQuery('#oCube').hasClass('active')  ){
+    OBJECT_FACE[selectedCube.uuid] = OBJECT_FACE[selectedCube.uuid] == undefined ? 3 : OBJECT_FACE[selectedCube.uuid];
+    OBJECT_FACE[selectedCube.uuid] = OBJECT_FACE[selectedCube.uuid] == 3 ? 0 : parseInt(OBJECT_FACE[selectedCube.uuid]) + 1;
+    // console.log( "Face Direction:", selectedCube.face, OBJECT_FACE[selectedCube.uuid] );
+    connectorCompare( selectedCube );
+  }else
+  if (selectedCube && selectedCube) {
+    OBJECT_FACE[selectedCube.uuid] = OBJECT_FACE[selectedCube.uuid] == undefined ? 0 : OBJECT_FACE[selectedCube.uuid];
+    OBJECT_FACE[selectedCube.uuid] = OBJECT_FACE[selectedCube.uuid] == 3 ? 0 : parseInt(OBJECT_FACE[selectedCube.uuid]) + 1;
+    // console.log( "Face Direction:", selectedCube.face, OBJECT_FACE[selectedCube.uuid] );
+    connectorCompare( selectedCube );
   }
 });
 
@@ -916,12 +960,23 @@ function onMouseDownRotation(event) {
   event.preventDefault();
   controls.enabled = true;
   controls.enableRotate = true;
+  // // connectorCompare(allCubes, selected);
 }
 
 function onModelMove(event) {
   event.preventDefault();
-  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+		mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+    
+    if( window.location.pathname == '/konfigurator/' && window.screen.height >= 1050 )
+    {
+      mouse.y = mouse.y + 0.18; //@todo: Offset manual for now
+    }else if(window.location.pathname == '/konfigurator/' && window.screen.height >= 768 ){
+      mouse.y = mouse.y + 0.24;
+    }
+    
+   
+    // console.log(event.clientX, event.clientY);
   raycaster.setFromCamera(mouse, camera);
   if (Dragged) {
     if (raycaster.ray.intersectPlane(plane, intersection)) {
@@ -930,17 +985,34 @@ function onModelMove(event) {
     return;
   }
   intersects = raycaster.intersectObjects(allCubes, true);
+  // for (let i = 0; i < intersects.length; i++) {
+  //   // Get the intersection point
+  //   let point = intersects[i].point;
+  //   point.x = Math.round(point.x);
+  //   point.y = Math.round(point.y);
+  //   point.z = Math.round(point.z);
+  //   // Or move the point down
+  //   point.y -= 1;
+  //   // console.log(point, intersects[i].object.parent);
+  // }
+
+  // console.log(intersects);
   if (selectedCube) {
     compare(allCubes, selectedCube);
+    connectorCompare(selectedCube);
   }
   if (intersects.length > 0) {
+    // console.log( "selected: ",selected );
+    // console.log( "intersects[0].object.parent: ",intersects[0].object.parent );
     if (selected != intersects[0].object.parent) {
       selected = intersects[0].object.parent;
+      // console.log(selected);
       plane.setFromNormalAndCoplanarPoint(
         camera.getWorldDirection(plane.normal),
         selected.position
-      );
+        );
     }
+    // console.log( 'intersect: updating: mouse-cursor' );
     document.body.style.cursor = "pointer";
   } else {
     selected = null;
@@ -948,6 +1020,8 @@ function onModelMove(event) {
   }
 
 }
+
+
 
 function onModelDown(event) {
   event.preventDefault();
@@ -975,6 +1049,7 @@ function onModelUp(event) {
     selected.position.y = (Math.round(selected.position.y)) / 1.05;
     selected.position.z = Math.round(selected.position.z);
     compare(allCubes, selected);
+    connectorCompare(selected);
 
   }
 
@@ -1010,7 +1085,7 @@ function getXZCompare( all, selected, propsedY ){
 
 
   });
-  console.log( "match?:", is_match );
+  // console.log( "match?:", is_match );
   return is_match;
 }
 
@@ -1051,6 +1126,54 @@ for (let i = 0; i < all.length; i++) {
 
 }
 
+
+// Connector on same side of Cube
+function connectorCompare(current) {
+  let all = ALL_DATA.allCubes;
+  for (let i = 0; i < all.length; i++) {
+    if (all[i] != current.parent) {
+      const A1 = all[i].children[0];
+      if( jQuery('#oCube').hasClass('active') ){
+        OBJECT_FACE[A1.uuid] == undefined ? 3 : OBJECT_FACE[A1.uuid];
+        OBJECT_FACE[current.uuid] = OBJECT_FACE[current.uuid] == undefined ? 3 : OBJECT_FACE[current.uuid];
+      }else{
+        OBJECT_FACE[A1.uuid] == undefined ? 0 : OBJECT_FACE[A1.uuid];
+        OBJECT_FACE[current.uuid] = OBJECT_FACE[current.uuid] == undefined ? 0 : OBJECT_FACE[current.uuid];
+      }
+      
+      if( 
+        current.position.x == A1.position.x + 1 || 
+        current.position.x == A1.position.x - 1 || 
+        current.position.z == A1.position.z + 1 || 
+        current.position.z == A1.position.z - 1 ){
+        //Attached
+        let other_face = OBJECT_FACE[A1.uuid] == undefined ? 0 : OBJECT_FACE[A1.uuid];
+        if( jQuery('#oCube').hasClass('active') ){
+          other_face = OBJECT_FACE[A1.uuid] == undefined ? 3 : OBJECT_FACE[A1.uuid];
+        }
+        
+        console.log( "other: ",other_face , 'selected: ',OBJECT_FACE[current.uuid] );
+        if( ((OBJECT_FACE[current.uuid] == 1 && other_face == 3) || (OBJECT_FACE[current.uuid] == 3 && other_face == 1)) && (current.position.x == A1.position.x+1 || current.position.x == A1.position.x-1) ){
+          if (current.position.x == A1.position.x-1) {
+            A1.position.x = Math.round(A1.position.x+1);
+          } else {
+            current.position.x = Math.round(current.position.x+1);
+          }
+        }else if( ((OBJECT_FACE[current.uuid] == 0 && other_face == 2) || (OBJECT_FACE[current.uuid] == 2 && other_face == 0)) && (current.position.z == A1.position.z+1 || current.position.z == A1.position.z-1)){           
+          if (A1.position.z-1 == current.position.z) {
+            A1.position.z = Math.round(A1.position.z+1);
+          } else {
+            current.position.z = Math.round(current.position.z+1);
+          }
+        }
+      }
+      
+      
+    }
+  }
+}
+
+
 // function compare(all, current) {
 //   for (let i = 0; i < all.length; i++) {
 //     if (all[i] != current.parent) {
@@ -1090,16 +1213,29 @@ function showAlert(messageClass, duration) {
 jQuery("#uCube").html(UCUBE);
 jQuery("#oCube").html(OCUBE);
 
-document.body.addEventListener('click', function (event) {
+let productQuantity = 0;
+document.getElementById('cubex').addEventListener('click', function (event) {
   if (event.target.tagName.toLowerCase() === 'img' && event.target.hasAttribute('data-product-id') ) {
     const productId = event.target.getAttribute('data-product-id');
-    const currentCount = parseInt( jQuery(`#Textures-${productId}`).data('count') ) || 0;
-    let productQuantity = parseInt(currentCount + 1);
-    jQuery(`#Textures-${productId}`).data('count', productQuantity);
-    event.target.setAttribute('data-count', productQuantity);
-    eachProductQuantity[productId] = productQuantity;
+    const currentCount = event.target.getAttribute('data-count');
+    console.log( 'currentCount: ', currentCount );
+    let count = parseInt(currentCount);
+    if (count > 0) {
+      count++;
+    } else {
+      count = 1;
+    }
+    event.target.setAttribute('data-count', count);
+    const newCount = event.target.getAttribute('data-count');
+
+    eachProductQuantity[productId] = parseInt(newCount);
+    console.log( 'eachProductQuantity: ', eachProductQuantity );
+    
     totalQuenty = totalQuenty + 1;
+    
+    console.log( 'totalQuenty: ', totalQuenty );
   }
+  console.groupEnd('cart');
 });
 
 function handleRequestOfferClick() {
@@ -1202,45 +1338,48 @@ function sendRequest() {
 jQuery("#sendRequestButton").on("click", sendRequest);
 
 function handleAddToCartClick() {
-  console.log( "Cart execution: ", totalQuenty );
+  // console.log( "Cart execution: ", totalQuenty );
   var productsToAddToCart = [];
   var productDetailsMap = {};
   const quantity = totalQuenty;
-  console.log( "Cart items: ",  allCubes.length , quantity);
-  allCubes.forEach((product) => {
-
+  allCubes.forEach((product, prodIndex) => {
     if (quantity > 0) {
       const productName = product.userData.type;
-      console.log(product.userData);
       const variants = WP_PRODUCTS[product.userData.id].variants;
       const varient_slug = product.userData.slug;
+      console.log( 'varient_slug: ', varient_slug);
+      const slug = varient_slug+ ' - ' + varient_slug;
+      console.log( 'slug: ', slug);
       const varient = variants.filter((varient) => varient.slug === varient_slug)[0];
-      console.log(varient_slug);
+      console.log(eachProductQuantity[product.userData.id], "eachProductQuantity[product.userData.id]");
+      const signleQuantity = eachProductQuantity[product.userData.id];
 
       if (productDetailsMap[productName] && productDetailsMap[productName].varientId === varient.id) {
-        productDetailsMap[productName].quantity = eachProductQuantity[product.userData.id];
+        productDetailsMap[productName].quantity = signleQuantity / product.userData.cubesQuantity;
         productDetailsMap[productName].varientId = varient.id;
         productDetailsMap[productName].name = productName;
         productDetailsMap[productName].id = product.userData.id;
         productDetailsMap[productName].cubeQuantity = product.userData.cubesQuantity ?? 0;
         productDetailsMap[productName].connectorQuantity = product.userData.connectorQuantity ?? 0;
         productDetailsMap[productName].seatcussionQuantity = product.userData.seatcussionQuantity ?? 0;
-      } else {
+      } else  {
         productDetailsMap[productName] = {
           id: product.userData.id,
           name: productName,
-          quantity: eachProductQuantity[product.userData.id],
-          varientId: varient.id,
+          quantity: signleQuantity / product.userData.cubesQuantity,
+          varientId: varient ? varient.id : product.userData.id,
           cubeQuantity: product.userData.cubesQuantity ?? 0,
           connectorQuantity: product.userData.connectorQuantity ?? 0,
           seatcussionQuantity: product.userData.seatcussionQuantity ?? 0,
         };
       }
-
       productsToAddToCart.push({ ...productDetailsMap[productName] });
       console.log("productsToAddToCart: ", productsToAddToCart.length);
+      
     }
   });
+  console.log("productsToAddToCart: ", productsToAddToCart.length);
+  console.groupEnd("cart:");
   if (productsToAddToCart.length > 0) {
     jQuery.ajax({
       type: "POST",
@@ -1264,11 +1403,11 @@ function handleAddToCartClick() {
 }
 
 jQuery("#requestOffer").on('click', function () {
-  console.log( "Add to Cart", WP_CURRENT_USER_ROLE );
+  // console.log( "Add to Cart", WP_CURRENT_USER_ROLE );
   if (WP_CURRENT_USER_ROLE === BUSINESS_CUSTOMER) {
     handleRequestOfferClick();
   } else {
-    console.log( "handleAddToCartClick: " );
+    // console.log( "handleAddToCartClick: " );
     handleAddToCartClick();
   }
 });

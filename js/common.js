@@ -13,14 +13,14 @@ CubeModel.init_cube = function (cubex) {
                     <span class="cubeX__tooltiptext">Click to Add</span>
                     <div class="">
                         <div class="image-container">
-                            <img id="Textures-${cubex.id}" src='${cubex.image}' alt="${cubex.title}" data-model-url="${cubex.model_url}" data-product-id="${cubex.id}" data-slug="" class='cubeImage'>
+                            <img id="Textures-${cubex.id}" src='${cubex.image}' alt="${cubex.title}" data-model-url="${cubex.model_url}" data-product-id="${cubex.id}" data-slug="" data-count="0" class='cubeImage'>
                             <div class="loading-spinner">
                                 <i class="fa fa-spinner fs-2 text-dark animatio_spin" aria-hidden="true"></i>
                             </div>
                         </div>
                     </div>
                     <div class="cubeX__tooltip">
-                      <img id="Textures-tooltip-${cubex.id}" data-product-id="${cubex.id}" src="/wp-content/uploads/2023/10/add-to-cart.png" />
+                      <img id="Textures-tooltip-${cubex.id}" data-product-id="${cubex.id}" src="https://d6734qda5szbb.cloudfront.net/wp-content/uploads/2023/10/add-to-cart.png" />
                       </div>
                   </div>
                 <div class="right-side">
@@ -76,13 +76,13 @@ CubeModel.init_dropdown = function (cubex) {
                     <span class="cubeX__tooltiptext">Click to Add</span>
                       <div class="">
                         <div class="image-container">
-                            <img id="Sub-Textures-${product.id}" data-product-id="${product.id}" src="${product.image}" alt="${product.name}" data-model-url="${product.model_url}" data-slug="" class="sub-cube-images cubeImage">
+                            <img id="Sub-Textures-${product.id}" data-product-id="${product.id}" src="${product.image}" alt="${product.name}" data-model-url="${product.model_url}" data-slug="" data-count="0" class="sub-cube-images cubeImage">
                             <div class="loading-spinner">
                                 <i class="fa fa-spinner fs-2 text-dark animatio_spin" aria-hidden="true"></i>
                             </div>
                         </div>
                         <div class="cubeX__tooltip" >
-                          <img class="Sub-Textures-tooltip" data-product-id="${product.id}" src="/wp-content/uploads/2023/10/add-to-cart.png" />
+                          <img class="Sub-Textures-tooltip" data-product-id="${product.id}" src="https://d6734qda5szbb.cloudfront.net/wp-content/uploads/2023/10/add-to-cart.png" />
                           </div>
                       </div>
                 </div>

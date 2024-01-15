@@ -1,19 +1,21 @@
 <?php
 
 /**
- * Plugin Name: Configurator using ThreeJS
- * Plugin URI: cybernest.com
- * Description: Configurator using ThreeJS.
- * Version: 1.0.0
- * Author: Ali Raza
- * Author URI: github.com/aliraza-official
- * Text Domain: https://github.com/CyberNestLtd/cubx-configurator
+ * Plugin Name: Cubx-furniture 3D Configurator
+ * Plugin URI: https://cubx-furniture.com/konfigurator/
+ * Description: Cubx-furniture 3D Configurator
+ * Version: 1.0.1
+ * Author: Cyber Nest
+ * Author URI: cybernest.com
+ * Text Domain: 
  */
+
+define('CUBX_VERSION', '1.0.2');
 
 function my_threejs_plugin_enqueue_scripts()
 {
   wp_enqueue_style('bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css');
-  wp_enqueue_style('my-threejs-plugin-style', plugin_dir_url(__FILE__) . 'css/style.css');
+  wp_enqueue_style('my-threejs-plugin-style', plugin_dir_url(__FILE__) . 'css/style.css?v=' . CUBX_VERSION );
   wp_enqueue_script('jquery', 'https://code.jquery.com/jquery-3.2.1.slim.min.js', array(), '3.2.1', true);
   wp_enqueue_script('popper', 'https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js', array('jquery'), '1.12.9', true);
   wp_enqueue_script('bootstrap', 'https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js', array('jquery'), '4.0.0', true);
@@ -114,6 +116,14 @@ function get_product_data()
         $variation_name = implode(' - ', $attributes);
         $gltf_url = get_post_meta($variation['variation_id'], 'gltf_text_field', 'true');
         $gltf_url_2 = get_post_meta($variation['variation_id'], 'gltf_text_field_2', 'true');
+        
+        if (strpos($gltf_url, "cubx-furniture.com") !== false || strpos($gltf_url, "www.cubx-furniture.com") !== false) {
+          $gltf_url = str_replace(array("cubx-furniture.com", "www.cubx-furniture.com"), "d6734qda5szbb.cloudfront.net", $gltf_url);
+        }
+        if (strpos($gltf_url_2, "cubx-furniture.com") !== false || strpos($gltf_url_2, "www.cubx-furniture.com") !== false) {
+          $gltf_url_2 = str_replace(array("cubx-furniture.com", "www.cubx-furniture.com"), "d6734qda5szbb.cloudfront.net", $gltf_url_2);
+        }
+
         $variant_data[] = array(
           'id' => $variation['variation_id'],
           'slug' => $variation_name,
@@ -121,7 +131,7 @@ function get_product_data()
           'image' => $variation['image']['url'],
           'description' => $variation_object->get_description(),
           'gltf_url' => $gltf_url ? $gltf_url : '',
-          'gltf_url_2' => $gltf_url_2 ? $gltf_url_2 : '',
+          'gltf_url_2' => $gltf_url_2 ? $gltf_url_2 : ''
         );
       }
     }
@@ -315,10 +325,10 @@ function my_threejs_plugin_output()
       var ALL_DATA = {};
       var CONFIGURATOR_ENG = {};
     </script>
-    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/constants.js?v=<?= time() ?>"></script>
-    <script type="module" src="<?php echo plugin_dir_url(__FILE__); ?>js/configurater.js?v=<?= time() ?>"></script>
-    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/FileSaver.js?v=<?= time() ?>"></script>
-    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/common.js?v=<?= time() ?>"></script>
+    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/constants.js?v=<?= CUBX_VERSION ?>"></script>
+    <script type="module" src="<?php echo plugin_dir_url(__FILE__); ?>js/configurater.js?v=<?= CUBX_VERSION ?>"></script>
+    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/FileSaver.js?v=<?= CUBX_VERSION ?>"></script>
+    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/common.js?v=<?= CUBX_VERSION ?>"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/postprocessing/Pass.js"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/postprocessing/CopyShader.js"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/postprocessing/EffectComposer.js"></script>
@@ -328,7 +338,8 @@ function my_threejs_plugin_output()
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/postprocessing/MaskPass.js"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/DragControls.js"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/postprocessing/FXAAShader.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.js?v=<?= time() ?>"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.js"></script>
+    <script>console.log('v', '<?= CUBX_VERSION ?>')</script>
   </body>
 
   </html>
