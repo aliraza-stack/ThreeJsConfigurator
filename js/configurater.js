@@ -421,39 +421,50 @@ function hideAlert() {
   }, 4000);
 }
 
+
+
+// if(WP_PRODUCTS[cubex.id].tag === PTAG) {
+//   var uCubeButton = jQuery("button#uCube");
+//   if (uCubeButton.hasClass("active")) {
+//     const uData =  WP_PRODUCTS[cubex.id].variants.map((variant) => {
+//       return {
+//         slug: variant.slug,
+//       }
+//     });
+//     const uCubeData = uData.filter((data) => data.slug in UCUBESETS['URL']);
+//     uCubeData.forEach((data) => {
+//         model_url = UCUBESETS['URL'][data.slug].connecter_url;
+//         model_url2 = UCUBESETS['URL'][data.slug].seatcusion_url;
+//     });
+//   } else {
+//     const oData =  WP_PRODUCTS[cubex.id].variants.map((variant) => {
+//       return {
+//         slug: variant.slug,
+//       }
+//     });
+//     const oCubeData = oData.filter((data) => data.slug in OCUBESETS['URL']);
+//     oCubeData.forEach((data) => {
+//         model_url = OCUBESETS['URL'][data.slug].connecter_url;
+//         model_url2 = OCUBESETS['URL'][data.slug].seatcusion_url;
+//     });
+//   }
+// } else {
+//   model_url = imageElement.dataset.modelUrl;
+//   model_url2 = imageElement.dataset.modelUrl2;
+// }
+
+
+
+
+
+
 // CUBE LOADER
 function cloneCube(cubex) {
   const cubexVariants = jQuery("#cubex-variants-" + cubex.id);
   const imageElement = cubexVariants.find("img")[0];
-  if(WP_PRODUCTS[cubex.id].tag === PTAG) {
-    var uCubeButton = jQuery("button#uCube");
-    if (uCubeButton.hasClass("active")) {
-      const uData =  WP_PRODUCTS[cubex.id].variants.map((variant) => {
-        return {
-          slug: variant.slug,
-        }
-      });
-      const uCubeData = uData.filter((data) => data.slug in UCUBESETS['URL']);
-      uCubeData.forEach((data) => {
-          model_url = UCUBESETS['URL'][data.slug].connecter_url;
-          model_url2 = UCUBESETS['URL'][data.slug].seatcusion_url;
-      });
-    } else {
-      const oData =  WP_PRODUCTS[cubex.id].variants.map((variant) => {
-        return {
-          slug: variant.slug,
-        }
-      });
-      const oCubeData = oData.filter((data) => data.slug in OCUBESETS['URL']);
-      oCubeData.forEach((data) => {
-          model_url = OCUBESETS['URL'][data.slug].connecter_url;
-          model_url2 = OCUBESETS['URL'][data.slug].seatcusion_url;
-      });
-    }
-  } else {
-    model_url = imageElement.dataset.modelUrl;
-    model_url2 = imageElement.dataset.modelUrl2;
-  }
+  let model_url = imageElement.dataset.modelUrl;
+  let model_url2 = imageElement.dataset.modelUrl2;
+  
   // console.log(model_url, model_url2);
 
   const loader = new GLTFLoader(loading);
@@ -470,74 +481,95 @@ function cloneCube(cubex) {
   function numbersOfCubes(id) {
     if (WP_PRODUCTS[id].tag === PTAG) {
       let cubesQuantity = WP_PRODUCTS[id].cubes === "" ? 0 : parseInt(WP_PRODUCTS[id].cubes);
-      console.log(cubesQuantity);
+      console.log(cubesQuantity, "cubesQuantity");
       return cubesQuantity;
     } else {
       return 1;
     }
   }
 
-  let i = 0;
-  let index_override = false;
-    if (WP_PRODUCTS[cubex.id].tag === PTAG) {
-      index_override = allCubes.length;
-      var uCubeButton = jQuery("button#uCube");
-      if (uCubeButton.hasClass("active")) {
-        Object.keys(ALL_DATA['UCUBESETS'].URL).forEach((data) => {
-          const singleSlug = data.split(" - ")[0];
-          const slugLast = cubex.title.split("-")[1];
-          const uCubeData = ALL_DATA.UCUBESETS[singleSlug][slugLast];
-       if( uCubeData.connecter >= uCubeData.seatcushion ){
-          for( let cubeCounter = 0; uCubeData.connecter > cubeCounter; cubeCounter++ ){
-            let mi_url = ALL_DATA.UCUBESETS.URL[data];
-            let threedUrl = cubeCounter >= uCubeData.seatcushion ? mi_url['connecter_url'] : mi_url['seatcusion_url'];
-            var isSeatcushion = cubeCounter >= uCubeData.seatcushion ? false : true;
-            cubePromises.push(loadAndAddCube(loader, threedUrl, cubex, i++, isSeatcushion));
-          }
-        }
-        else if( uCubeData.connecter <= uCubeData.seatcushion ){
-          for( let cubeCounter = 0; uCubeData.seatcushion > cubeCounter; cubeCounter++ ){
-            let mi_url = ALL_DATA.UCUBESETS.URL[data];
-            let threedUrl = cubeCounter >= uCubeData.connector ? mi_url['connecter_url'] : mi_url['seatcusion_url'];
-            var isSeatcushion = cubeCounter >= uCubeData.seatcushion ? false : true;
-            cubePromises.push(loadAndAddCube(loader, threedUrl, cubex, i++, isSeatcushion));
-          }
-        }
-        });
-      } else {
-        Object.keys(ALL_DATA['OCUBESETS'].URL).forEach((data) => {
-          const singleSlug = data.split(" - ")[0];
-          const slugLast = cubex.title.split("-")[1];
-          const uCubeData = ALL_DATA.OCUBESETS[singleSlug][slugLast];
-          console.log(uCubeData, data);
-           if( uCubeData.connecter >= uCubeData.seatcushion ){
-              for( let cubeCounter = 0; uCubeData.connecter > cubeCounter; cubeCounter++ ){
-                let mi_url = ALL_DATA.OCUBESETS.URL[data];
-                let threedUrl = cubeCounter >= uCubeData.seatcushion ? mi_url['connector_url'] : mi_url['seatcusion_url'];
-                console.log("threedUrl-1", threedUrl)
-                var isSeatcushion = cubeCounter >= uCubeData.seatcushion ? false : true;
-                cubePromises.push(loadAndAddCube(loader, threedUrl, cubex, i++, isSeatcushion));
-              }
-            }else if( uCubeData.connecter <= uCubeData.seatcushion ){
-              for( let cubeCounter = 0; uCubeData.seatcushion > cubeCounter; cubeCounter++ ){
-                let mi_url = ALL_DATA.OCUBESETS.URL[data];
-                let threedUrl = cubeCounter >= uCubeData.seatcushion ? mi_url['connector_url'] : mi_url['seatcusion_url'];
-                console.log("threedUrl-else", threedUrl)
-                var isSeatcushion = cubeCounter >= uCubeData.seatcushion ? false : true;
-                cubePromises.push(loadAndAddCube(loader, threedUrl, cubex, i++, isSeatcushion));
-              }
-            }
-        });
-      }
-    } else {
+  // let i = 0;
+  // let index_override = false;
+  //   if (WP_PRODUCTS[cubex.id].tag === PTAG) {
+  //     index_override = allCubes.length;
+  //     var uCubeButton = jQuery("button#uCube");
+  //     if (uCubeButton.hasClass("active")) {
+  //       Object.keys(ALL_DATA['UCUBESETS'].URL).forEach((data) => {
+  //         const singleSlug = data.split(" - ")[0];
+  //         const slugLast = cubex.title.split("-")[1];
+  //         const uCubeData = ALL_DATA.UCUBESETS[singleSlug][slugLast];
+  //      if( uCubeData.connecter >= uCubeData.seatcushion ){
+  //         for( let cubeCounter = 0; uCubeData.connecter > cubeCounter; cubeCounter++ ){
+  //           let mi_url = ALL_DATA.UCUBESETS.URL[data];
+  //           let threedUrl = cubeCounter >= uCubeData.seatcushion ? mi_url['connecter_url'] : mi_url['seatcusion_url'];
+  //           var isSeatcushion = cubeCounter >= uCubeData.seatcushion ? false : true;
+  //           cubePromises.push(loadAndAddCube(loader, threedUrl, cubex, i++, isSeatcushion));
+  //         }
+  //       }
+  //       else if( uCubeData.connecter <= uCubeData.seatcushion ){
+  //         for( let cubeCounter = 0; uCubeData.seatcushion > cubeCounter; cubeCounter++ ){
+  //           let mi_url = ALL_DATA.UCUBESETS.URL[data];
+  //           let threedUrl = cubeCounter >= uCubeData.connector ? mi_url['connecter_url'] : mi_url['seatcusion_url'];
+  //           var isSeatcushion = cubeCounter >= uCubeData.seatcushion ? false : true;
+  //           cubePromises.push(loadAndAddCube(loader, threedUrl, cubex, i++, isSeatcushion));
+  //         }
+  //       }
+  //       });
+  //     } else {
+  //       Object.keys(ALL_DATA['OCUBESETS'].URL).forEach((data) => {
+  //         const singleSlug = data.split(" - ")[0];
+  //         const slugLast = cubex.title.split("-")[1];
+  //         const uCubeData = ALL_DATA.OCUBESETS[singleSlug][slugLast];
+  //         console.log(uCubeData, data);
+  //          if( uCubeData.connecter >= uCubeData.seatcushion ){
+  //             for( let cubeCounter = 0; uCubeData.connecter > cubeCounter; cubeCounter++ ){
+  //               let mi_url = ALL_DATA.OCUBESETS.URL[data];
+  //               let threedUrl = cubeCounter >= uCubeData.seatcushion ? mi_url['connector_url'] : mi_url['seatcusion_url'];
+  //               console.log("threedUrl-1", threedUrl)
+  //               var isSeatcushion = cubeCounter >= uCubeData.seatcushion ? false : true;
+  //               cubePromises.push(loadAndAddCube(loader, threedUrl, cubex, i++, isSeatcushion));
+  //             }
+  //           }else if( uCubeData.connecter <= uCubeData.seatcushion ){
+  //             for( let cubeCounter = 0; uCubeData.seatcushion > cubeCounter; cubeCounter++ ){
+  //               let mi_url = ALL_DATA.OCUBESETS.URL[data];
+  //               let threedUrl = cubeCounter >= uCubeData.seatcushion ? mi_url['connector_url'] : mi_url['seatcusion_url'];
+  //               console.log("threedUrl-else", threedUrl)
+  //               var isSeatcushion = cubeCounter >= uCubeData.seatcushion ? false : true;
+  //               cubePromises.push(loadAndAddCube(loader, threedUrl, cubex, i++, isSeatcushion));
+  //             }
+  //           }
+  //       });
+  //     }
+  //   } else {
 
+  //     var isSeatcushion = WP_PRODUCTS[cubex.id].seatcushions == "1" ? true : false;
+  //     if( isSeatcushion == false ){
+  //       isSeatcushion = WP_PRODUCTS[cubex.id].name.toLowerCase() == "Seatcushion".toLowerCase() ? true : false;
+  //     }
+  //     // console.log( "isSeatcushion: " , isSeatcushion, cubex.title, cubex.id );
+  //     cubePromises.push(loadAndAddCube(loader, model_url, cubex, i, isSeatcushion));
+  //   }
+
+  let cubesQuantity = WP_PRODUCTS[cubex.id].cubes === "" ? 0 : parseInt(WP_PRODUCTS[cubex.id].cubes);
+  let setCubesQuantity = 0;
+  let a = 0;
+  let index_override = false;
+  for (let i = 0; i < numCubesToAdd; i++) {
+    if (cubesQuantity > 0 && setCubesQuantity < cubesQuantity) {
+      index_override = allCubes.length;
+      console.log(setCubesQuantity, cubesQuantity);
+      cubePromises.push(loadAndAddCube(loader, model_url, cubex, a++, false));
+      setCubesQuantity++;
+    } else {
+      console.log("else");
       var isSeatcushion = WP_PRODUCTS[cubex.id].seatcushions == "1" ? true : false;
       if( isSeatcushion == false ){
         isSeatcushion = WP_PRODUCTS[cubex.id].name.toLowerCase() == "Seatcushion".toLowerCase() ? true : false;
       }
       // console.log( "isSeatcushion: " , isSeatcushion, cubex.title, cubex.id );
-      cubePromises.push(loadAndAddCube(loader, model_url, cubex, i, isSeatcushion));
+      cubePromises.push(loadAndAddCube(loader, model_url, cubex, a, isSeatcushion));
     }
+  }
 
   Promise.all(cubePromises).then((cubes) => {
     cubes.forEach((cube, index) => {

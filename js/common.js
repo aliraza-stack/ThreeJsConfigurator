@@ -25,11 +25,11 @@ CubeModel.init_cube = function (cubex) {
                   </div>
                 <div class="right-side">
                   <div class="selectors">
-                      <div>Connectors</div>
+                      <div>1 x connectors</div>
                           <ul data-product-id="${cubex.id}">${cubex.connector_div}</ul>
                   </div>
                   <div class="selectors">
-                      <div>Cube Surface</div>
+                      <div>1 x ${cubex.title === OCUBE ? 'o-' : 'u-'}cube</div>
                       <ul data-product-id="${cubex.id}">${cubex.title === OCUBE ? cubex.o_surface_div : cubex.u_surface_div}</ul>
                   </div>
                 </div>
@@ -47,16 +47,21 @@ CubeModel.init_dropdown = function (cubex) {
   cubex.menu_items.forEach((item) => {
     const product = WP_PRODUCTS[item.id];
     let attributes = product.attributes;
+    setCounters(product);
+    
 
 
     let colorSelector = "";
     for (let key in attributes) {
+      if (key === "pa_set_seatcushion") {
+        continue;
+      }
       colorSelector += `<div class="selectors">
-          <div>${getAttributeName(key)}</div>
+          <div>${product.connecters} ${getAttributeName(key)}</div>
           <ul data-product-id="${product.id}" class="${product.tag + " " + key}">`;
       for (let i = 0; i < attributes[key].length; i++) {
         colorSelector += `<li
-            data-slug="${attributes[key][i].slug}"
+            data-slug="${product.tag === PTAG ? attributes[key][i].slug + ' - ' + attributes[key][i].slug : attributes[key][i].slug}"
             data-name="${product.name.slice(-1)}"
             onclick="toggleActive(this)">
             <span style="background-color: ${attributes[key][i].color};
@@ -65,6 +70,12 @@ CubeModel.init_dropdown = function (cubex) {
       }
       colorSelector += `</ul></div>`;
     }
+
+    let colorSelector2 = `<div class="selectors"><div class="uCube_count_${item.id}"> x u-cube</div><ul data-product-id=""><li data-slug="vanilla" class=""><span style="background-color: #d8bea7; cursor: pointer;"></span></li></ul></div>`;
+
+    let colorSelector3 = `<div class="selectors"><div class="oCube_count_${item.id}"> x o-cube</div><ul data-product-id=""><li data-slug="black" class=""><span style="background-color: #141414; cursor: pointer;"></span></li></ul></div>`;
+
+    
 
     // ${product.tag === PTAG ? '0' : ''}
     // class="config__counter set-id-${product.id}"
@@ -88,20 +99,24 @@ CubeModel.init_dropdown = function (cubex) {
                 </div>
                 <div class="right-side">
                     ${colorSelector}
+                    
+                      ${jQuery("#uCube").hasClass("active") ? product.tag === PTAG ? colorSelector2 : '' : product.tag === PTAG ? colorSelector3 : ''}
+                    
                 </div>
             </div>`;
 
     selectFirstColors(product);
-    setsCounter(product)
+    setCounters(product);
+
     document.getElementById("Sub-Textures-" + product.id).setAttribute("onload", "hideLoadingSpinner(this)");
 
     function getAttributeName(key) {
       if (key === "pa_connecter-single" || key === "pa_set_connecters") {
-        return "Connecters";
+        return "x connecters";
       } else if (key === "pa_seatcushions-single" || key === "pa_set_seatcushion") {
-        return "Seatcushions";
+        return "x seatcushions";
       } else if (key === "pa_cube-surface" || key === "pa_o-cube-surface") {
-        return "Cube Surface";
+        return " x cube";
       }
       return "";
     }
@@ -178,8 +193,6 @@ function updateVariantImage(productId) {
   }
 
   loadingSpinner.style.display = 'block';
-
-
 }
 
 function hideLoadingSpinner(image) {
@@ -189,36 +202,47 @@ function hideLoadingSpinner(image) {
   }
 }
 
-function setsCounter(product) {
-  jQuery(".Sets.pa_set_seatcushion").each(function () {
-    jQuery(this).find("li").each(function () {
-      var slug = jQuery(this).data("slug");
-      var name = jQuery(this).data("name");
-      var span = jQuery(this).find("span");
-      if (product.category == UCUBE || product.category == "U-Wuerfel") {
-        span.addClass("config__counter fw-bolder set-id-" + product.id);
-        span.text(ALL_DATA.UCUBESETS[slug][name]['seatcushion']);
-      } else {
-        span.addClass("config__counter text-white fw-bolder set-id-" + product.id);
-        span.text(ALL_DATA.OCUBESETS['slug'][name]['seatcushion']);
-      }
-    });
-  })
-  jQuery(".Sets.pa_set_connecters").each(function () {
-    jQuery(this).find("li").each(function () {
-      var slug = jQuery(this).data("slug");
-      var name = jQuery(this).data("name");
-      var span = jQuery(this).find("span");
-      if (product.category == UCUBE || product.category == "U-Wuerfel") {
-        span.addClass("config__counter fw-bolder set-id-" + product.id);
-        span.text(ALL_DATA.UCUBESETS[slug][name]['connecter']);
-      } else {
-        span.addClass("config__counter text-white fw-bolder set-id-" + product.id);
-        span.text(ALL_DATA.OCUBESETS['slug'][name]['connecter']);
-      }
-    });
-  })
+function setCounters(product) {
+  if (product.category == UCUBE || product.category == "U-Wuerfel") {
+    jQuery(".uCube_count_" + product.id).text(product.connecters + " x u-cube");
+  } else if (product.category == OCUBE || product.category == "O-Wuerfel") {
+    jQuery(".oCube_count_" + product.id).text(product.connecters + " x o-cube");
+  } else {
+    jQuery(".uCube_count_" + product.id).text("1 x u-cube");
+    jQuery(".oCube_count_" + product.id).text("1 x o-cube");
+  }
 }
+
+// function setsCounter(product) {
+//   jQuery(".Sets.pa_set_seatcushion").each(function () {
+//     jQuery(this).find("li").each(function () {
+//       var slug = jQuery(this).data("slug");
+//       var name = jQuery(this).data("name");
+//       var span = jQuery(this).find("span");
+//       if (product.category == UCUBE || product.category == "U-Wuerfel") {
+//         span.addClass("config__counter fw-bolder set-id-" + product.id);
+//         span.text(ALL_DATA.UCUBESETS[slug][name]['seatcushion']);
+//       } else {
+//         span.addClass("config__counter text-white fw-bolder set-id-" + product.id);
+//         span.text(ALL_DATA.OCUBESETS['slug'][name]['seatcushion']);
+//       }
+//     });
+//   })
+//   jQuery(".Sets.pa_set_connecters").each(function () {
+//     jQuery(this).find("li").each(function () {
+//       var slug = jQuery(this).data("slug");
+//       var name = jQuery(this).data("name");
+//       var span = jQuery(this).find("span");
+//       if (product.category == UCUBE || product.category == "U-Wuerfel") {
+//         span.addClass("config__counter fw-bolder set-id-" + product.id);
+//         span.text(ALL_DATA.UCUBESETS[slug][name]['connecter']);
+//       } else {
+//         span.addClass("config__counter text-white fw-bolder set-id-" + product.id);
+//         span.text(ALL_DATA.OCUBESETS['slug'][name]['connecter']);
+//       }
+//     });
+//   })
+// }
 
 
 
