@@ -44,12 +44,11 @@ CubeModel.init_cube = function (cubex) {
 
 };
 CubeModel.init_dropdown = function (cubex) {
+  
   cubex.menu_items.forEach((item) => {
     const product = WP_PRODUCTS[item.id];
     let attributes = product.attributes;
     setCounters(product);
-    
-
 
     let colorSelector = "";
     for (let key in attributes) {
@@ -61,7 +60,7 @@ CubeModel.init_dropdown = function (cubex) {
           <ul data-product-id="${product.id}" class="${product.tag + " " + key}">`;
       for (let i = 0; i < attributes[key].length; i++) {
         colorSelector += `<li
-            data-slug="${product.tag === PTAG ? attributes[key][i].slug + ' - ' + attributes[key][i].slug : attributes[key][i].slug}"
+            data-slug="${product.tag === PTAG ? jQuery("#uCube").hasClass("active") ? attributes[key][i].slug + ' - ' + attributes[key][i].slug : 'black - ' + attributes[key][i].slug : attributes[key][i].slug}"
             data-name="${product.name.slice(-1)}"
             onclick="toggleActive(this)">
             <span style="background-color: ${attributes[key][i].color};
@@ -114,7 +113,7 @@ CubeModel.init_dropdown = function (cubex) {
       if (key === "pa_connecter-single" || key === "pa_set_connecters") {
         return "x connecters";
       } else if (key === "pa_seatcushions-single" || key === "pa_set_seatcushion") {
-        return "x seatcushions";
+        return "1 x seatcushion";
       } else if (key === "pa_cube-surface" || key === "pa_o-cube-surface") {
         return " x cube";
       }

@@ -48,9 +48,9 @@ function get_product_data()
   $args = array(
     'post_type' => 'product',
     'posts_per_page' => -1,
-    'orderby' => 'title',
+    'orderby' => 'id',
     'order' => 'ASC',
-    'lang' => $current_language,
+    // 'lang' => $current_language,
   );
 
   $products = get_posts($args);
@@ -185,6 +185,7 @@ function my_threejs_plugin_output()
     <meta charset="utf-8" />
     <link rel="shortcut icon" />
     <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__); ?>css/style.css?v=<?= time() ?>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script>var _CONFIGURATOR_SETTINGS = {};</script>
   </head>
 
@@ -326,7 +327,7 @@ function my_threejs_plugin_output()
       var CONFIGURATOR_ENG = {};
     </script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/constants.js?v=<?= CUBX_VERSION ?>"></script>
-    <script type="module" src="<?php echo plugin_dir_url(__FILE__); ?>js/configurater.js?v=<?= CUBX_VERSION ?>"></script>
+    <script type="module" src="<?php echo plugin_dir_url(__FILE__); ?>js/configurater.js?v=<?= CUBX_VERSION . time() ?>"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/FileSaver.js?v=<?= CUBX_VERSION ?>"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/common.js?v=<?= CUBX_VERSION ?>"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/postprocessing/Pass.js"></script>
@@ -336,7 +337,8 @@ function my_threejs_plugin_output()
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/postprocessing/ShaderPass.js"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/postprocessing/RenderPass.js"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/postprocessing/MaskPass.js"></script>
-    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/DragControls.js"></script>
+    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/DragControlsV2.js?v=<?= CUBX_VERSION ?>"></script>
+    <script src="<?php echo plugin_dir_url(__FILE__); ?>js/DeviceOrientationControls.js?v=<?= CUBX_VERSION ?>"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/postprocessing/FXAAShader.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.js"></script>
     <script>console.log('v', '<?= CUBX_VERSION ?>')</script>
