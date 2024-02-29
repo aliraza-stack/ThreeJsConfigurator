@@ -262,6 +262,9 @@ var OCUBESETS = {
 allData("UCUBESETS", UCUBESETS);
 allData("OCUBESETS", OCUBESETS);
 
+const isPortrait = window.matchMedia("(orientation: portrait)").matches;
+const isLandscape = window.matchMedia("(orientation: landscape)").matches;
+
 
 
 let console_disabled = false;
@@ -280,17 +283,24 @@ console = new Proxy(console, {
 
 camera = new THREE.PerspectiveCamera(35, width / height, 1, 1000);
 // var controls1 = new DeviceOrientationControls(camera);
-window.camera = camera;
-camera.position.set(0, 0, 11);
+// window.camera = camera;
+// if (!isMobile) 
+//   camera.position.set(0, 0, 11);
+
 // if( firefox ){
 //   camera.position.set(0, 0, 10);
 // }else{
 //   camera.position.set(0, 0, 11);
 // }
 // mobile and tablet check
-if (isMobile) {
+if (isMobile && isPortrait) {
+  console.log("isMobile and isPortrait", isMobile, isPortrait);
+  camera.position.set(0, 0, 15);
+} else if (isMobile && isLandscape) {
+  console.log("isMobile and isLandscape", isMobile, isLandscape);
   camera.position.set(0, 0, 10);
 } else {
+  console.log("Desktop");
   camera.position.set(0, 0, 11);
 }
 camera.lookAt(0, 0, 0);
@@ -298,7 +308,7 @@ camera.lookAt(0, 0, 0);
 
 
 const rendererOptions = {
-  antialias: false,
+  antialias: true,
 };
 
 renderer = new THREE.WebGLRenderer({ ...rendererOptions });
@@ -1123,7 +1133,9 @@ console.log("Mob: Selection: ", selected);
     mouse.x = ( x / window.innerWidth ) * 2 - 1;
 		mouse.y = - ( y / window.innerHeight ) * 2 + 1;
     console.log( "My Mob: ", window.screen.height, mouse.x, mouse.y );
-    mouse.y = mouse.y + 0.24;
+    if (!isMobile) {
+      mouse.y = mouse.y + 0.24;
+    }
     console.log( "My Mob - Y: ", mouse.y );
     raycaster.setFromCamera(mouse, camera);
 
@@ -1231,7 +1243,8 @@ if (current.position.y < 0 && all.length >= 1) {
 }
 
 for (let i = 0; i < all.length; i++) {
-  if (all[i] != current.parent) {
+  let selectedObject = current.isSeatcushion ? current : current.parent;
+  if (all[i] != selectedObject) {
     const A1 = all[i].children[0].position;
     let selectedCubePos = current.position;
 
@@ -1536,7 +1549,13 @@ jQuery("#requestOffer").on('click', function () {
 });
 
 
+// function myFunction() {
+//   compare(allCubes, selectedCube);
+//   connectorCompare(selectedCube);
+// }
 
+
+// setInterval(myFunction, 1000);
 
 
 createFloor();

@@ -340,7 +340,6 @@ function my_threejs_plugin_output()
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/DragControlsV2.js?v=<?= CUBX_VERSION ?>"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/DeviceOrientationControls.js?v=<?= CUBX_VERSION ?>"></script>
     <script src="<?php echo plugin_dir_url(__FILE__); ?>js/postprocessing/FXAAShader.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.js"></script>
     <script>console.log('v', '<?= CUBX_VERSION ?>')</script>
   </body>
 

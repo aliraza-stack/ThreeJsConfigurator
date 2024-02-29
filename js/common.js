@@ -212,6 +212,29 @@ function setCounters(product) {
   }
 }
 
+// const c = jQuery(".image-container");
+// const isLeftIcon = true;
+
+// if (c) {
+//   c.addEventListener('click', () => {
+//       if (divA.style.right === '' || divA.style.right === '-70%') {
+//           divA.style.right = '0';
+//       } else {
+//           divA.style.right = '-70%';
+//       }
+//       if (isLeftIcon) {
+//           openerBtn.innerHTML = "<i class='fas fa-caret-right'></i>";
+//           jQuery('.left-toolbar-box').hide();
+//           jQuery(".rotate-btn").hide();
+//       } else {
+//           openerBtn.innerHTML = "<i class='fas fa-caret-left'></i>";
+//           jQuery('.left-toolbar-box').show();
+//           jQuery(".rotate-btn").show();
+//       }
+//       isLeftIcon = !isLeftIcon;
+//   });
+// }
+
 // function setsCounter(product) {
 //   jQuery(".Sets.pa_set_seatcushion").each(function () {
 //     jQuery(this).find("li").each(function () {
