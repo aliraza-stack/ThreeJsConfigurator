@@ -50,6 +50,7 @@ window.mobileAndTabletCheck = function() {
 };
 const isMobile =  window.mobileAndTabletCheck();
 
+const modelCache = {};
 var cube;
 // var GUI = new dat.GUI(); //Debugger
 var cubePosition = { x: 0, y: 0, z: 0 };
@@ -482,12 +483,22 @@ function hideAlert() {
 // }
 
 
-
+String.prototype.hashCode = function() {
+  var hash = 0,
+    i, chr;
+  if (this.length === 0) return hash;
+  for (i = 0; i < this.length; i++) {
+    chr = this.charCodeAt(i);
+    hash = ((hash << 5) - hash) + chr;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
+}
 
 
 
 // CUBE LOADER
-function cloneCube(cubex) {
+async function cloneCube(cubex) {
   const cubexVariants = jQuery("#cubex-variants-" + cubex.id);
   const imageElement = cubexVariants.find("img")[0];
   let model_url = imageElement.dataset.modelUrl;
@@ -586,56 +597,91 @@ function cloneCube(cubex) {
     if (cubesQuantity > 0 && setCubesQuantity < cubesQuantity) {
       index_override = allCubes.length;
       console.log(setCubesQuantity, cubesQuantity);
-      cubePromises.push(loadAndAddCube(loader, model_url, cubex, a++, false));
+      let cube = await loadAndAddCube(loader, model_url, cubex, a++, false)
+      // cubePromises.push(loadAndAddCube(loader, model_url, cubex, a++, false));
       setCubesQuantity++;
+      positionCube(cube, index_override ? (index_override): i, numCubesToAdd);
+      console.log("Position", i, index_override, numCubesToAdd, a);
     } else {
       console.log("else");
       var isSeatcushion = WP_PRODUCTS[cubex.id].seatcushions == "1" ? true : false;
       if( isSeatcushion == false ){
         isSeatcushion = WP_PRODUCTS[cubex.id].name.toLowerCase() == "Seatcushion".toLowerCase() ? true : false;
       }
+      index_override = allCubes.length;
       // console.log( "isSeatcushion: " , isSeatcushion, cubex.title, cubex.id );
-      cubePromises.push(loadAndAddCube(loader, model_url, cubex, a, isSeatcushion));
+      cubePromises.push(loadAndAddCube(loader, model_url, cubex, a++, isSeatcushion));
     }
   }
-
-  Promise.all(cubePromises).then((cubes) => {
-    cubes.forEach((cube, index) => {
-      // console.log(cube, index, numCubesToAdd);
-      positionCube(cube, index_override ? (index_override+index): index, numCubesToAdd);
+  if( cubePromises.length ){
+    Promise.all(cubePromises).then((cubes) => {
+      cubes.forEach((cube, index) => {
+        // console.log(cube, index, numCubesToAdd);
+        positionCube(cube, index_override ? (index_override+index): index, numCubesToAdd);
+      });
     });
-  });
+  }
+  
 }
-
-function loadAndAddCube(loader, url, cubex, index, isSeatcushion) {
-  return new Promise((resolve) => {
-    loader.load(url, (gltf) => {
-      // console.log( 'modelURL: ', url, index, cubex )
-      const cube = gltf.scene.clone();
+async function loadAndAddCube(loader, url, cubex, index, isSeatcushion) {
+  console.log("modelCache[url]", 3);
+  return new Promise((resolve, reject) => {
+    if (modelCache[url]) {
+    
+      const cachedModel = modelCache[url].clone();
       const products = WP_PRODUCTS[cubex.id];
-      // cube.scale.set(2.5, 2.5, 2.5);
-      cube.userData.draggable = false;
-      cube.name = cubex.title + "-" + (allCubes.length + 1);
-      cube.userData.type = cubex.title;
-      cube.userData.id = cubex.id;
-      cube.userData.price = products.price;
-      cube.userData.category = products.category ?? "";
-      cube.userData.slug = clickedSlug;
-      cube.userData.set = products.tag;
-      cube.userData.cubesQuantity = products.cubes === "" ? 0 : parseInt(products.cubes);
-      cube.userData.connectorQuantity = products.connecters === "" ? 0 : parseInt(products.connecters);
-      cube.userData.seatcussionQuantity = products.seatcussions === "" ? 0 : parseInt(products.seatcussions);
-      cube.isSeatcushion = isSeatcushion;
-      cube.face = 0;
-      cube.userData.rotation = { x: Math.floor(cube.rotation.x), y: Math.floor(cube.rotation.y), z: Math.floor(cube.rotation.z) };
-      allCubes.push(cube);
+      cachedModel.userData.draggable = false;
+      cachedModel.name = cubex.title + "-" + (allCubes.length + 1);
+      cachedModel.userData.type = cubex.title;
+      cachedModel.userData.id = cubex.id;
+      cachedModel.userData.price = products.price;
+      cachedModel.userData.category = products.category ?? "";
+      cachedModel.userData.slug = clickedSlug;
+      cachedModel.userData.set = products.tag;
+      cachedModel.userData.cubesQuantity = products.cubes === "" ? 0 : parseInt(products.cubes);
+      cachedModel.userData.connectorQuantity = products.connecters === "" ? 0 : parseInt(products.connecters);
+      cachedModel.userData.seatcussionQuantity = products.seatcussions === "" ? 0 : parseInt(products.seatcussions);
+      cachedModel.isSeatcushion = isSeatcushion;
+      cachedModel.face = 0;
+      cachedModel.userData.rotation = { x: Math.floor(cachedModel.rotation.x), y: Math.floor(cachedModel.rotation.y), z: Math.floor(cachedModel.rotation.z) };
+      allCubes.push(cachedModel);
       allData("allCubes", allCubes);
-      jQuery("#cube_counters_" + cubex.id).html(allCubes.filter((cube) => cube.userData.id === cubex.id).length);
-      scene.add(cube);
-      resolve(cube);
-    });
+      jQuery("#cube_counters_" + cubex.id).html(allCubes.filter((cachedModel) => cachedModel.userData.id === cubex.id).length);
+      
+      scene.add(cachedModel);
+      resolve(cachedModel);
+    } else {
+      loader.load(url, (gltf) => {
+        console.log("modelURL: else >>>>>>>>", url,);
+        // console.log( 'modelURL: ', url, index, cubex )
+        const cube = gltf.scene.clone();
+        modelCache[url] = cube;
+        const products = WP_PRODUCTS[cubex.id];
+        // cube.scale.set(2.5, 2.5, 2.5);
+        cube.userData.draggable = false;
+        cube.name = cubex.title + "-" + (allCubes.length + 1);
+        cube.userData.type = cubex.title;
+        cube.userData.id = cubex.id;
+        cube.userData.price = products.price;
+        cube.userData.category = products.category ?? "";
+        cube.userData.slug = clickedSlug;
+        cube.userData.set = products.tag;
+        cube.userData.cubesQuantity = products.cubes === "" ? 0 : parseInt(products.cubes);
+        cube.userData.connectorQuantity = products.connecters === "" ? 0 : parseInt(products.connecters);
+        cube.userData.seatcussionQuantity = products.seatcussions === "" ? 0 : parseInt(products.seatcussions);
+        cube.isSeatcushion = isSeatcushion;
+        cube.face = 0;
+        cube.userData.rotation = { x: Math.floor(cube.rotation.x), y: Math.floor(cube.rotation.y), z: Math.floor(cube.rotation.z) };
+        allCubes.push(cube);
+        allData("allCubes", allCubes);
+        jQuery("#cube_counters_" + cubex.id).html(allCubes.filter((cube) => cube.userData.id === cubex.id).length);
+        scene.add(cube);
+        resolve(cube);
+      }, null, reject);
+    }
   });
 }
+
 
 function positionCube(cube, index, numCubesToAdd) {
   const spacingX = -1;
@@ -1088,8 +1134,8 @@ function onModelMove(event) {
     }
     if (intersects.length > 0) {
       if (selected != intersects[0].object.parent) {
-        selected = intersects[0].object.parent;
-        // console.log(selected);
+        selected = intersects[0].object.parent.isSeatcushion ? intersects[0].object.parent.children[0] : intersects[0].object.parent;
+        // console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",selected);
         plane.setFromNormalAndCoplanarPoint(
           camera.getWorldDirection(plane.normal),
           selected.position
@@ -1151,7 +1197,7 @@ console.log("Mob: Selection: ", selected);
     if (intersects.length > 0) {
       if (selected != intersects[0].object.parent) {
         selected = intersects[0].object.parent;
-        // console.log(selected);
+        // console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",selected);
         plane.setFromNormalAndCoplanarPoint(
           camera.getWorldDirection(plane.normal),
           selected.position
@@ -1188,6 +1234,7 @@ function onModelUp(event) {
     selected.position.x = Math.round(selected.position.x);
     selected.position.y = (Math.round(selected.position.y)) / 1.05;
     selected.position.z = Math.round(selected.position.z);
+    console.log("Selected position", selected.position);
     compare(allCubes, selected);
     connectorCompare(selected);
 
@@ -1206,14 +1253,35 @@ function onModelUp(event) {
 function getXZCompare( all, selected, propsedY ){
   let is_match = false;
   let match = selected;
+  console.log("All:::::::::::", all);
+  // for (let i = 0; i < all.length; i++) {
+  //   all = all[i].isSeatcushion ? all[i] : all[i].children[0]
+  //   console.log(all);
+  // }
   all.forEach(function(data){
-    // console.log(data);
-    let xz = data.children[0].position;
-    // console.log( 'match', xz.x, xz.y, xz.z, '=', match.x, propsedY, match.z, );
+    data = data.children[0];
+    console.log("DATA:::::::::::::::::",data);
+    let xz = data.position;
+    console.log("propsedY:::::::::::::::::: ", propsedY);
+
+    console.log( 'match', xz.x, xz.y, xz.z, '=', match.x, propsedY, match.z, );
+    console.log("Match:::::::::::::::::", match);
+    console.log("Compare data != selected", data.position != selected);
+    console.log("Selected:::::::::::::::::", selected);
+    console.log(xz.x == match.x && xz.z == match.z && xz.y == match.y && data.parent.isSeatcushion && data.position != selected);
+    // console.log( 'susion: ', data.parent.isSeatcushion );
+    // console.log(xz.x == match.x && xz.z == match.z && propsedY == 0.9523809523809523);
     // console.log('susion: ', data.children[0].parent.isSeatcushion);
-    if( xz.x == match.x && xz.z == match.z && xz.y == propsedY && data.children[0].parent.isSeatcushion ){
+    if( xz.x == match.x && xz.z == match.z && xz.y == propsedY && data.parent.isSeatcushion ){
       // console.log( 'match-cusion', data.children[0].parent.name);
       is_match = 2;
+      console.log( 'match-cusion', data.name);
+      return is_match;
+    } 
+    // (xz.y != 0.9523809523809523 && xz.y != 1.9047619047619047 && xz.y != 2.857142857142857)
+    else if ( xz.x == match.x && xz.z == match.z && xz.y == match.y && data.parent.isSeatcushion && data.position != selected){
+      is_match = 3;
+      console.log( 'match-cusion 0.06675999611616135', data.name);
       return is_match;
     }
 
@@ -1226,51 +1294,82 @@ function getXZCompare( all, selected, propsedY ){
 
 
   });
-  // console.log( "match?:", is_match );
+  console.log( "match?:", is_match );
   return is_match;
 }
 
 function compare(all, current) {
+  console.log("Current compare cube::::::", current);
 if (all == undefined || all.length == 0 || all == [] || all == null || current == undefined) {
   return;
 }
 if (current.position.y > 0 && all.length == 1) {
-  current.position.y = (Math.round(current.position.y -1)) / 1.05;
+  console.log("This one");
+  current.position.y = (Math.round(current.position.y)) / 1.05;
 }
 
 if (current.position.y < 0 && all.length >= 1) {
   current.position.y = 0;
 }
+console.log("Compare function is called");
 
 for (let i = 0; i < all.length; i++) {
-  let selectedObject = current.isSeatcushion ? current : current.parent;
-  if (all[i] != selectedObject) {
-    const A1 = all[i].children[0].position;
+  // let selectedObject = current;
+  // let selectedObject = current.isSeatcushion ? current.children[0] : current.parent.children[0];
+  // console.log("Now I'm hare pos :: 1", selectedObject);
+  let allCubeNew = all[i].isSeatcushion ? all[i].children[0] : all[i].children[0];
+  // console.log(allCubeNew !== selectedObject, "allCubeNew !== selectedObject");
+  if (allCubeNew !== current) {
+    // console.log("Now I'm hare pos :: 2", allCubeNew);
+    // const A1 = all[i].children[0].position;
+    // let selectedCubePos = current.position;
+    let A1 = allCubeNew.position;
     let selectedCubePos = current.position;
+
+    console.log("=============================================");
+    console.log("all[i]", allCubeNew);
+    console.log("A1", A1);
+    console.log("selectedCubePos", selectedCubePos);
+    console.log("=============================================");
+
+
+    console.log("=============================================");
+    console.log(selectedCubePos.y == 0 && (A1.x == selectedCubePos.x && A1.z == selectedCubePos.z) && all[i].isSeatcushion);
+    console.log("=============================================");
 
     if (A1.x === selectedCubePos.x && A1.z === selectedCubePos.z && A1.y === selectedCubePos.y) {
       current.position.y = (Math.round(current.position.y + 1)) / 1.05;
     }
-    selectedCubePos = current.position;
+    // selectedCubePos = current.position;
     if (selectedCubePos.y > 0 && (A1.x != selectedCubePos.x && A1.z != selectedCubePos.z || A1.y != selectedCubePos.y)) {
-      // console.log("AIR CUBE DOWN");
-      let propsedY = (Math.round(current.position.y - 1)) / 1.05;
+      console.log("AIR CUBE DOWN");
+      let propsedY = (Math.round(selectedCubePos.y - 1)) / 1.05;
 
       let is_match = getXZCompare( all, selectedCubePos, propsedY );
       if(  is_match === false ){
-        current.position.y = propsedY;
-        // console.log( 'Moving down!!', `is_match: ${is_match}`, all[i].children[0].parent.name );
+        selectedCubePos.y = propsedY;
+        // console.log( 'Moving down!!', `is_match: ${is_match}`, all[i].name );
 
       }else if( is_match === 2 ){
-        current.position.x = Math.round(current.position.x+1);
-        // console.log( 'Moving sideways!!', `is_match: ${is_match}`,  all[i].children[0].parent.name );
+        selectedCubePos.x = Math.round(selectedCubePos.x+1);
+        console.log( 'Moving sideways!!', `is_match: ${is_match}`,  all[i].parent.name );
       }
 
 
 
-      // selectedCubePos = current.position;
+      // selectedCubePos = selectedCubePos;
 
 
+    } 
+    else if (selectedCubePos.y == 0 && (A1.x == selectedCubePos.x && A1.z == selectedCubePos.z) && all[i].isSeatcushion) {
+      console.log("Cube is on the cushion");
+      let propsedY = (Math.round(selectedCubePos.y + 1)) / 1.05;
+      console.log( 'propsedY:::::::::::::::::: ', propsedY);
+      let is_match = getXZCompare( all, selectedCubePos, propsedY );
+      if( is_match === 3 ){
+        selectedCubePos.x = Math.round(selectedCubePos.x+1);
+        console.log( 'Moving sideways!!!!!!!!!!!!!!!!', `is_match: ${is_match}`,  all[i].parent.name );
+      }
     }
 
   }
