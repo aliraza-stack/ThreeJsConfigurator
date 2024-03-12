@@ -692,18 +692,21 @@ function positionCube(cube, index, numCubesToAdd) {
     const col = index % 4;
     cube.children[0].position.x = col * spacingX;
     cube.children[0].position.z = row * spacingZ;
+    cube.children[0].position.y = 0;
   } else {
     if (index > 1) {
       const row = Math.floor(index / 4);
       const col = index % 4;
       cube.children[0].position.x = col * spacingX;
       cube.children[0].position.z = row * spacingZ;
+      cube.children[0].position.y = 0;
     } else {
       index = allCubes.length - 1;
       const row = Math.floor(index / 4);
       const col = index % 4;
       cube.children[0].position.x = col * spacingX;
       cube.children[0].position.z = row * spacingZ;
+      cube.children[0].position.y = 0;
     }
   }
 }
@@ -1196,7 +1199,7 @@ console.log("Mob: Selection: ", selected);
   
     if (intersects.length > 0) {
       if (selected != intersects[0].object.parent) {
-        selected = intersects[0].object.parent;
+        selected = intersects[0].object.parent.isSeatcushion ? intersects[0].object.parent.children[0] : intersects[0].object.parent;
         // console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",selected);
         plane.setFromNormalAndCoplanarPoint(
           camera.getWorldDirection(plane.normal),
@@ -1380,6 +1383,7 @@ for (let i = 0; i < all.length; i++) {
 
 // Connector on same side of Cube
 function connectorCompare(current) {
+  console.log("current", current);
   let all = ALL_DATA.allCubes;
   if (all == undefined || all.length == 0 || all == [] || all == null || current == undefined) {
     return;
@@ -1401,6 +1405,7 @@ function connectorCompare(current) {
         current.position.z == A1.position.z + 1 || 
         current.position.z == A1.position.z - 1 ){
         //Attached
+        console.log("Attached", A1.position, current.position);
         let other_face = OBJECT_FACE[A1.uuid] == undefined ? 0 : OBJECT_FACE[A1.uuid];
         if( jQuery('#oCube').hasClass('active') ){
           other_face = OBJECT_FACE[A1.uuid] == undefined ? 3 : OBJECT_FACE[A1.uuid];
@@ -1411,12 +1416,15 @@ function connectorCompare(current) {
           if (current.position.x == A1.position.x-1) {
             A1.position.x = Math.round(A1.position.x+1);
           } else {
+            console.log("pushed 1:3");
             current.position.x = Math.round(current.position.x+1);
           }
-        }else if( ((OBJECT_FACE[current.uuid] == 0 && other_face == 2) || (OBJECT_FACE[current.uuid] == 2 && other_face == 0)) && (current.position.z == A1.position.z+1 || current.position.z == A1.position.z-1)){           
+        }else if( ((OBJECT_FACE[current.uuid] == 0 && other_face == 2) || (OBJECT_FACE[current.uuid] == 2 && other_face == 0)) && ((current.position.z == A1.position.z+1 || current.position.z == A1.position.z-1) && current.position.x == A1.position.x)){           
           if (A1.position.z-1 == current.position.z) {
-            A1.position.z = Math.round(A1.position.z+1);
+            console.log("pushed 0:2:::");
+            current.position.z = Math.round(A1.position.z+1);
           } else {
+            console.log("pushed 0:2", (A1.position.z-1), (current.position.z), A1.parent.name);
             current.position.z = Math.round(current.position.z+1);
           }
         }
